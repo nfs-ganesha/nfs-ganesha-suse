@@ -28,7 +28,7 @@ Summary:	New Transport Independent RPC Library
 Group:		System/Libraries
 # libtirpc has /etc/netconfig, most machines probably have it anyway
 # for NFS client
-Requires:	libtirpc
+Requires:	libtirpc3
 
 %description -n libntirpc1_5
 This package contains a new implementation of the original libtirpc, 
