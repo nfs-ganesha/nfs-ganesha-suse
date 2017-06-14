@@ -45,7 +45,7 @@ the following features not found in libtirpc:
 
 %package devel
 Summary:	Development headers for %{name}
-Requires:	%{name}%{?_isa} = %{version}
+Requires:	%{name}1_5%{?_isa} = %{version}
 Group:		Development/Libraries/C and C++
 
 %description devel
