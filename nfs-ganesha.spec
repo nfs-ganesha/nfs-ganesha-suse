@@ -87,6 +87,7 @@ License:	LGPLv3+
 Url:		https://github.com/nfs-ganesha/nfs-ganesha/wiki
 
 Source0:	https://github.com/%{name}/%{name}/archive/V%{version}/%{name}-%{version}.tar.gz
+Patch0:		FSAL_Stackable_FSALs_FSAL_NULL_CMakeLists.txt.patch
 
 BuildRequires:	cmake
 BuildRequires:	bison
@@ -143,7 +144,11 @@ Requires(postun): systemd
 BuildRequires:	initscripts
 %endif
 Requires(post): psmisc
+%if ( 0%{?suse_version} )
+Requires(pre): shadow
+%else
 Requires(pre): shadow-utils
+%endif
 
 # Use CMake variables
 
@@ -198,8 +203,13 @@ BuildRequires:	PyQt4-devel
 Requires:	PyQt4
 %endif
 %endif
+%if ( 0%{?suse_version} )
+BuildRequires:  python-devel
+Requires: nfs-ganesha = %{version}-%{release}, python
+%else
 BuildRequires:  python2-devel
 Requires: nfs-ganesha = %{version}-%{release}, python2
+%endif
 
 %description utils
 This package contains utility scripts for managing the NFS-GANESHA server
@@ -313,7 +323,7 @@ be used with NFS-Ganesha to support PANFS
 Summary: The NFS-GANESHA's GLUSTER FSAL
 Group: Applications/System
 Requires:	nfs-ganesha = %{version}-%{release}
-BuildRequires:	glusterfs-api-devel >= 3.10.0
+BuildRequires:	glusterfs-devel >= 3.10.0
 BuildRequires:	libattr-devel, libacl-devel
 
 %description gluster
@@ -324,9 +334,10 @@ be used with NFS-Ganesha to support Gluster
 %prep
 %setup -q -n %{name}-%{version}
 rm -rf contrib/libzfswrapper
+%patch0 -p1
 
 %build
-cd src && %cmake . -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
+cd src && %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
 	-DBUILD_CONFIG=rpmbuild				\
 	-DDSANITIZE_ADDRESS=OFF				\
 	-DUSE_FSAL_NULL=%{use_fsal_null}		\

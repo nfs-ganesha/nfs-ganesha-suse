@@ -1,0 +1,11 @@
+--- nfs-ganesha-2.5.0/src/FSAL/Stackable_FSALs/FSAL_NULL/CMakeLists.txt.orig	2017-06-14 12:16:58.044721123 -0400
++++ nfs-ganesha-2.5.0/src/FSAL/Stackable_FSALs/FSAL_NULL/CMakeLists.txt	2017-06-14 12:17:45.546668084 -0400
+@@ -20,7 +20,7 @@
+ add_sanitizers(fsalnull)
+ 
+ target_link_libraries(fsalnull
+-  gos
++  gos support
+ )
+ 
+ set_target_properties(fsalnull PROPERTIES VERSION 4.2.0 SOVERSION 4)
