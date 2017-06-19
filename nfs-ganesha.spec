@@ -14,9 +14,6 @@
 %endif
 
 %if ( 0%{?suse_version} )
-BuildRequires: sles-release >= 12
-Requires: sles-release >= 12
-
 %global with_systemd 1
 %global with_nfsidmap 1
 %endif
@@ -83,10 +80,11 @@ Version:	2.5.0
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		Applications/System
-License:	LGPLv3+
+License:	LGPL-3.0+
 Url:		https://github.com/nfs-ganesha/nfs-ganesha/wiki
 
 Source0:	https://github.com/%{name}/%{name}/archive/V%{version}/%{name}-%{version}.tar.gz
+Patch0:		CMakeLists.txt.patch
 
 BuildRequires:	cmake
 BuildRequires:	bison
@@ -143,7 +141,11 @@ Requires(postun): systemd
 BuildRequires:	initscripts
 %endif
 Requires(post): psmisc
+%if ( 0%{?suse_version} )
+Requires(pre): shadow
+%else
 Requires(pre): shadow-utils
+%endif
 
 # Use CMake variables
 
@@ -153,7 +155,7 @@ It comes with various back-end modules (called FSALs) provided as
 shared objects to support different file systems and name-spaces.
 
 %package mount-9P
-Summary: a 9p mount helper
+Summary: A 9p mount helper
 Group: Applications/System
 
 %description mount-9P
@@ -198,8 +200,13 @@ BuildRequires:	PyQt4-devel
 Requires:	PyQt4
 %endif
 %endif
+%if ( 0%{?suse_version} )
+BuildRequires:  python-devel
+Requires: nfs-ganesha = %{version}-%{release}, python
+%else
 BuildRequires:  python2-devel
 Requires: nfs-ganesha = %{version}-%{release}, python2
+%endif
 
 %description utils
 This package contains utility scripts for managing the NFS-GANESHA server
@@ -313,7 +320,7 @@ be used with NFS-Ganesha to support PANFS
 Summary: The NFS-GANESHA's GLUSTER FSAL
 Group: Applications/System
 Requires:	nfs-ganesha = %{version}-%{release}
-BuildRequires:	glusterfs-api-devel >= 3.10.0
+BuildRequires:	glusterfs-devel >= 3.10.0
 BuildRequires:	libattr-devel, libacl-devel
 
 %description gluster
@@ -324,9 +331,10 @@ be used with NFS-Ganesha to support Gluster
 %prep
 %setup -q -n %{name}-%{version}
 rm -rf contrib/libzfswrapper
+%patch0 -p1
 
 %build
-cd src && %cmake . -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
+cd src && %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
 	-DBUILD_CONFIG=rpmbuild				\
 	-DDSANITIZE_ADDRESS=OFF				\
 	-DUSE_FSAL_NULL=%{use_fsal_null}		\
@@ -348,6 +356,10 @@ cd src && %cmake . -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
 	-DUSE_DBUS=ON					\
 	-DUSE_9P=ON					\
 	-DDISTNAME_HAS_GIT_DATA=OFF			\
+	-DCMAKE_C_FLAGS="-fmessage-length=0 -grecord-gcc-switches -fstack-protector -O2 -Wall -D_FORTIFY_SOURCE=2 -funwind-tables -fasynchronous-unwind-tables -DNDEBUG -fPIC" \
+	-DCMAKE_EXE_LINKER_FLAGS="-Wl,-z,relro"		\
+	-DCMAKE_MODULE_LINKER_FLAGS=			\
+	-DCMAKE_SHARED_LINKER_FLAGS="-fPIC -Wl,-z,relro"\
 %if %{with jemalloc}
 	-DALLOCATOR=jemalloc
 %endif
@@ -357,12 +369,11 @@ make %{?_smp_mflags} || make %{?_smp_mflags} || make
 %install
 mkdir -p %{buildroot}%{_sysconfdir}/ganesha/
 mkdir -p %{buildroot}%{_sysconfdir}/dbus-1/system.d
-mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
+mkdir -p %{buildroot}%{_localstatedir}/adm/fillup-templates
 mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_sbindir}
 mkdir -p %{buildroot}%{_libdir}/ganesha
-mkdir -p %{buildroot}%{_localstatedir}/run/ganesha
 mkdir -p %{buildroot}%{_libexecdir}/ganesha
 cd src
 install -m 644 config_samples/logrotate_ganesha	%{buildroot}%{_sysconfdir}/logrotate.d/ganesha
@@ -380,7 +391,7 @@ mkdir -p %{buildroot}%{_unitdir}
 install -m 644 scripts/systemd/nfs-ganesha.service	%{buildroot}%{_unitdir}/nfs-ganesha.service
 install -m 644 scripts/systemd/nfs-ganesha-lock.service	%{buildroot}%{_unitdir}/nfs-ganesha-lock.service
 install -m 644 scripts/systemd/nfs-ganesha-config.service	%{buildroot}%{_unitdir}/nfs-ganesha-config.service
-install -m 644 scripts/systemd/sysconfig/nfs-ganesha	%{buildroot}%{_sysconfdir}/sysconfig/ganesha
+install -m 644 scripts/systemd/sysconfig/nfs-ganesha	%{buildroot}%{_localstatedir}/adm/fillup-templates/ganesha
 %if 0%{?_tmpfilesdir:1}
 mkdir -p %{buildroot}%{_tmpfilesdir}
 install -m 644 scripts/systemd/tmpfiles.d/ganesha.conf	%{buildroot}%{_tmpfilesdir}
@@ -422,8 +433,14 @@ install -m 755 scripts/init.d/nfs-ganesha.gpfs		%{buildroot}%{_sysconfdir}/init.
 %endif
 %endif
 
-make DESTDIR=%{buildroot} install
+make -C build DESTDIR=%{buildroot} install
 
+find "%{buildroot}%{python_sitelib}/" -name '*.pyc' \
+-exec %__rm {} \;
+%__python -c 'import compileall;
+compileall.compile_dir("%{buildroot}%{python_sitelib}/",
+ddir="%{python_sitelib}/",
+force=1)'
 
 %post
 %if ( 0%{?suse_version} )
@@ -471,15 +488,14 @@ exit 0
 %{_includedir}/ntirpc/
 %endif
 %config %{_sysconfdir}/dbus-1/system.d/org.ganesha.nfsd.conf
-%config(noreplace) %{_sysconfdir}/sysconfig/ganesha
+%config(noreplace) %{_localstatedir}/adm/fillup-templates/ganesha
 %config(noreplace) %{_sysconfdir}/logrotate.d/ganesha
 %dir %{_sysconfdir}/ganesha/
 %config(noreplace) %{_sysconfdir}/ganesha/ganesha.conf
 %dir %{_defaultdocdir}/ganesha/
 %{_defaultdocdir}/ganesha/*
-%doc src/ChangeLog
-%dir %{_localstatedir}/run/ganesha
 %dir %{_libexecdir}/ganesha/
+%dir %{_libdir}/ganesha
 %{_libexecdir}/ganesha/nfs-ganesha-config.sh
 %dir %attr(0755,ganesha,ganesha) %{_localstatedir}/log/ganesha
 
@@ -571,6 +587,7 @@ exit 0
 %if %{with utils}
 %files utils
 %if ( 0%{?suse_version} )
+%dir %{python_sitelib}/Ganesha
 %{python_sitelib}/Ganesha/*
 %{python_sitelib}/ganeshactl-*-info
 %else
