@@ -86,7 +86,7 @@ Requires: openSUSE-release
 
 Name:		nfs-ganesha
 Version:	2.5.0
-Release:	1%{?dev:%{dev}}%{?dist}
+Release:	2%{?dev:%{dev}}%{?dist}
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		Applications/System
 License:	LGPL-3.0+
@@ -624,6 +624,9 @@ exit 0
 %endif
 
 %changelog
+* Thu Jul 20 2017 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.5.0-2
+- nfs-ganesha 2.5.0 w/ libntirpc-1.5.3
+
 * Mon Jun 12 2017 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.5.0-1
 - nfs-ganesha 2.5.0 GA
 
