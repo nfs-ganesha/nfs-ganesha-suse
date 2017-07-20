@@ -1,6 +1,6 @@
 
 Name:		libntirpc
-Version:	1.5.2
+Version:	1.5.3
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	New Transport Independent RPC Library
 Group:		System/Libraries
@@ -88,6 +88,9 @@ install -c -m 0644 COPYING %{buildroot}%{_defaultlicensedir}/%{name}/
 %{_libdir}/pkgconfig/libntirpc.pc
 
 %changelog
+* Wed Jul 19 2017 Kaleb S. KEITHLEY <kkeithle at redhat.com> 1.5.3-1
+- libntirpc 1.5.3 GA
+
 * Fri Jun 2 2017 Kaleb S. KEITHLEY <kkeithle at redhat.com> 1.5.2-1
 - libntirpc 1.5.2 GA
 
