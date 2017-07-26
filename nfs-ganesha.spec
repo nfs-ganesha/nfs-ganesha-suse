@@ -81,7 +81,11 @@ Requires: openSUSE-release
 %bcond_without system_ntirpc
 %global use_system_ntirpc %{on_off_switch system_ntirpc}
 
+%ifnarch i586
+%bcond_without man_page
+%else
 %bcond_with man_page
+%endif
 %global use_man_page %{on_off_switch man_page}
 
 
