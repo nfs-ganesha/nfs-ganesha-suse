@@ -81,19 +81,22 @@ Requires: openSUSE-release
 %bcond_without system_ntirpc
 %global use_system_ntirpc %{on_off_switch system_ntirpc}
 
-# %%global		dev final
-# %%global		dash_dev_version 2.5-final
+%bcond_without man_page
+%global use_man_page %{on_off_switch man_page}
+
+
+# %%global	dev final
+# %%global	dash_dev_version 2.5-final
 
 Name:		nfs-ganesha
-Version:	2.5.0
-Release:	2%{?dev:%{dev}}%{?dist}
+Version:	2.5.1
+Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		Applications/System
 License:	LGPL-3.0+
 Url:		https://github.com/nfs-ganesha/nfs-ganesha/wiki
 
 Source0:	https://github.com/%{name}/%{name}/archive/V%{version}/%{name}-%{version}.tar.gz
-Patch0:		CMakeLists.txt.patch
 
 BuildRequires:	cmake
 BuildRequires:	bison
@@ -113,12 +116,12 @@ BuildRequires:	libblkid-devel
 BuildRequires:	libuuid-devel
 BuildRequires:	gcc-c++
 %if %{with system_ntirpc}
-BuildRequires:	libntirpc-devel >= 1.5.2
+BuildRequires:	libntirpc-devel >= 1.5.3
 %endif
 %if ( 0%{?fedora} )
 # this should effectively be a no-op, as all Fedora installs should have it
 # with selinux.
-Requires:	policycoreutils-python    
+Requires:	policycoreutils-python
 %endif
 Requires:	nfs-utils
 %if ( 0%{?fedora} ) || ( 0%{?rhel} && 0%{?rhel} >= 6 ) || ( 0%{?suse_version} )
@@ -148,6 +151,9 @@ Requires(preun): systemd
 Requires(postun): systemd
 %else
 BuildRequires:	initscripts
+%endif
+%if %{with man_page}
+BuildRequires: python-Sphinx
 %endif
 Requires(post): psmisc
 %if ( 0%{?suse_version} )
@@ -210,10 +216,10 @@ Requires:	PyQt4
 %endif
 %endif
 %if ( 0%{?suse_version} )
-BuildRequires:  python-devel
+BuildRequires:	python-devel
 Requires: nfs-ganesha = %{version}-%{release}, python
 %else
-BuildRequires:  python2-devel
+BuildRequires:	python2-devel
 Requires: nfs-ganesha = %{version}-%{release}, python2
 %endif
 
@@ -226,7 +232,7 @@ This package contains utility scripts for managing the NFS-GANESHA server
 Summary: The NFS-GANESHA's library for use with LTTng
 Group: Applications/System
 BuildRequires: lttng-ust-devel >= 2.3
-Requires: nfs-ganesha = %{version}-%{release}, lttng-tools >= 2.3,  lttng-ust >= 2.3
+Requires: nfs-ganesha = %{version}-%{release}, lttng-tools >= 2.3, lttng-ust >= 2.3
 
 %description lttng
 This package contains the libganesha_trace.so library. When preloaded
@@ -256,7 +262,7 @@ Group: Applications/System
 Requires: nfs-ganesha = %{version}-%{release}
 
 %description mem
-This package contains a FSAL shared object to be used with NFS-Ganesha.  This
+This package contains a FSAL shared object to be used with NFS-Ganesha. This
 is used for speed and latency testing.
 %endif
 
@@ -273,6 +279,7 @@ be used with NFS-Ganesha to support GPFS backend
 %endif
 
 # CEPH
+%ifnarch i686 armv7hl ppc64
 %if %{with ceph}
 %package ceph
 Summary: The NFS-GANESHA's CephFS FSAL
@@ -296,6 +303,7 @@ BuildRequires:	librgw2-devel >= 10.2.7
 %description rgw
 This package contains a FSAL shared object to
 be used with NFS-Ganesha to support Ceph RGW
+%endif
 %endif
 
 # XFS
@@ -340,7 +348,6 @@ be used with NFS-Ganesha to support Gluster
 %prep
 %setup -q -n %{name}-%{version}
 rm -rf contrib/libzfswrapper
-%patch0 -p1
 
 %build
 cd src && %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
@@ -369,6 +376,7 @@ cd src && %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
 	-DCMAKE_EXE_LINKER_FLAGS="-Wl,-z,relro"		\
 	-DCMAKE_MODULE_LINKER_FLAGS=			\
 	-DCMAKE_SHARED_LINKER_FLAGS="-fPIC -Wl,-z,relro"\
+	-DUSE_MAN_PAGE=%{use_man_page}			\
 %if %{with jemalloc}
 	-DALLOCATOR=jemalloc
 %endif
@@ -397,7 +405,7 @@ install -m 644 config_samples/rgw.conf %{buildroot}%{_sysconfdir}/ganesha
 
 %if %{with_systemd}
 mkdir -p %{buildroot}%{_unitdir}
-install -m 644 scripts/systemd/nfs-ganesha.service	%{buildroot}%{_unitdir}/nfs-ganesha.service
+install -m 644 scripts/systemd/nfs-ganesha.service.el7	%{buildroot}%{_unitdir}/nfs-ganesha.service
 install -m 644 scripts/systemd/nfs-ganesha-lock.service	%{buildroot}%{_unitdir}/nfs-ganesha-lock.service
 install -m 644 scripts/systemd/nfs-ganesha-config.service	%{buildroot}%{_unitdir}/nfs-ganesha-config.service
 install -m 644 scripts/systemd/sysconfig/nfs-ganesha	%{buildroot}%{_localstatedir}/adm/fillup-templates/ganesha
@@ -416,6 +424,7 @@ install -m 644 scripts/init.d/sysconfig/ganesha		%{buildroot}%{_sysconfdir}/sysc
 install -m 644 config_samples/xfs.conf %{buildroot}%{_sysconfdir}/ganesha
 %endif
 
+%ifnarch i686 armv7hl ppc64
 %if %{with ceph}
 install -m 644 config_samples/ceph.conf %{buildroot}%{_sysconfdir}/ganesha
 %endif
@@ -423,6 +432,7 @@ install -m 644 config_samples/ceph.conf %{buildroot}%{_sysconfdir}/ganesha
 %if %{with rgw}
 install -m 644 config_samples/rgw.conf %{buildroot}%{_sysconfdir}/ganesha
 install -m 644 config_samples/rgw_bucket.conf %{buildroot}%{_sysconfdir}/ganesha
+%endif
 %endif
 
 %if %{with gluster}
@@ -480,6 +490,7 @@ exit 0
 %postun
 %if ( 0%{?suse_version} )
 %service_del_postun nfs-ganesha-lock.service
+%debug_package
 %else
 %if %{with_systemd}
 %systemd_postun_with_restart nfs-ganesha-lock.service
@@ -503,6 +514,7 @@ exit 0
 %config(noreplace) %{_sysconfdir}/ganesha/ganesha.conf
 %dir %{_defaultdocdir}/ganesha/
 %{_defaultdocdir}/ganesha/*
+%doc src/ChangeLog
 %dir %{_libexecdir}/ganesha/
 %dir %{_libdir}/ganesha
 %{_libexecdir}/ganesha/nfs-ganesha-config.sh
@@ -519,17 +531,33 @@ exit 0
 %{_sysconfdir}/init.d/nfs-ganesha
 %endif
 
+%if %{with man_page}
+%{_mandir}/*/ganesha-config.8.gz
+%{_mandir}/*/ganesha-core-config.8.gz
+%{_mandir}/*/ganesha-export-config.8.gz
+%{_mandir}/*/ganesha-cache-config.8.gz
+%{_mandir}/*/ganesha-log-config.8.gz
+%endif
+
+
 %files mount-9P
 %{_sbindir}/mount.9P
-
+%if %{with man_page}
+%{_mandir}/*/ganesha-9p-config.8.gz
+%endif
 
 %files vfs
 %{_libdir}/ganesha/libfsalvfs*
 %config(noreplace) %{_sysconfdir}/ganesha/vfs.conf
-
+%if %{with man_page}
+%{_mandir}/*/ganesha-vfs-config.8.gz
+%endif
 
 %files proxy
 %{_libdir}/ganesha/libfsalproxy*
+%if %{with man_page}
+%{_mandir}/*/ganesha-proxy-config.8.gz
+%endif
 
 # Optional packages
 %if %{with nullfs}
@@ -555,18 +583,28 @@ exit 0
 %if ! %{with_systemd}
 %{_sysconfdir}/init.d/nfs-ganesha-gpfs
 %endif
+%if %{with man_page}
+%{_mandir}/*/ganesha-gpfs-config.8.gz
+%endif
 %endif
 
 %if %{with xfs}
 %files xfs
 %{_libdir}/ganesha/libfsalxfs*
 %config(noreplace) %{_sysconfdir}/ganesha/xfs.conf
+%if %{with man_page}
+%{_mandir}/*/ganesha-xfs-config.8.gz
+%endif
 %endif
 
+%ifnarch i686 armv7hl ppc64
 %if %{with ceph}
 %files ceph
 %{_libdir}/ganesha/libfsalceph*
 %config(noreplace) %{_sysconfdir}/ganesha/ceph.conf
+%if %{with man_page}
+%{_mandir}/*/ganesha-ceph-config.8.gz
+%endif
 %endif
 
 %if %{with rgw}
@@ -575,12 +613,19 @@ exit 0
 %{_libdir}/ganesha/libfsalrgw*
 %config(noreplace) %{_sysconfdir}/ganesha/rgw.conf
 %config(noreplace) %{_sysconfdir}/ganesha/rgw_bucket.conf
+%if %{with man_page}
+%{_mandir}/*/ganesha-rgw-config.8.gz
+%endif
+%endif
 %endif
 
 %if %{with gluster}
 %files gluster
 %config(noreplace) %{_sysconfdir}/logrotate.d/ganesha-gfapi
 %{_libdir}/ganesha/libfsalgluster*
+%if %{with man_page}
+%{_mandir}/*/ganesha-gluster-config.8.gz
+%endif
 %endif
 
 %if %{with panfs}
@@ -600,6 +645,7 @@ exit 0
 %{python_sitelib}/Ganesha/*
 %{python_sitelib}/ganeshactl-*-info
 %else
+%dir %{python_sitelib}/Ganesha
 %{python2_sitelib}/Ganesha/*
 %{python2_sitelib}/ganeshactl-*-info
 %endif
@@ -620,10 +666,13 @@ exit 0
 %{_bindir}/sm_notify.ganesha
 %{_bindir}/ganesha_mgr
 %{_bindir}/ganesha_conf
-%{_mandir}/*/*
+%{_mandir}/*/ganesha_conf.8.gz
 %endif
 
 %changelog
+* Mon Jul 24 2017 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.5.1-1
+- nfs-ganesha 2.5.1 GA
+
 * Thu Jul 20 2017 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.5.0-2
 - nfs-ganesha 2.5.0 w/ libntirpc-1.5.3
 
