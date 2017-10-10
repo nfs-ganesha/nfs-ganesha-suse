@@ -89,7 +89,7 @@ Requires: openSUSE-release
 # %%global	dash_dev_version 2.5-final
 
 Name:		nfs-ganesha
-Version:	2.5.2
+Version:	2.5.3
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		Applications/System
@@ -406,7 +406,7 @@ install -m 644 config_samples/rgw.conf %{buildroot}%{_sysconfdir}/ganesha
 %if %{with_systemd}
 mkdir -p %{buildroot}%{_unitdir}
 install -m 644 scripts/systemd/nfs-ganesha.service.el7	%{buildroot}%{_unitdir}/nfs-ganesha.service
-install -m 644 scripts/systemd/nfs-ganesha-lock.service	%{buildroot}%{_unitdir}/nfs-ganesha-lock.service
+install -m 644 scripts/systemd/nfs-ganesha-lock.service.el7	%{buildroot}%{_unitdir}/nfs-ganesha-lock.service
 install -m 644 scripts/systemd/nfs-ganesha-config.service	%{buildroot}%{_unitdir}/nfs-ganesha-config.service
 install -m 644 scripts/systemd/sysconfig/nfs-ganesha	%{buildroot}%{_localstatedir}/adm/fillup-templates/ganesha
 %if 0%{?_tmpfilesdir:1}
@@ -465,6 +465,14 @@ force=1)'
 %if ( 0%{?suse_version} )
 %service_add_post nfs-ganesha.service nfs-ganesha-lock.service nfs-ganesha-config.service
 %else
+%if ( 0%{?fedora} || ( 0%{?rhel} && 0%{?rhel} > 6 ) )
+semanage fcontext -a -t ganesha_var_log_t %{_localstatedir}/log/ganesha
+semanage fcontext -a -t ganesha_var_log_t %{_localstatedir}/log/ganesha/ganesha.log
+%if %{with gluster}
+semanage fcontext -a -t ganesha_var_log_t %{_localstatedir}/log/ganesha/ganesha-gfapi.log
+%endif
+restorecon %{_localstatedir}/log/ganesha
+%endif
 %if %{with_systemd}
 %systemd_post nfs-ganesha.service
 %systemd_post nfs-ganesha-lock.service
@@ -518,7 +526,7 @@ exit 0
 %dir %{_libexecdir}/ganesha/
 %dir %{_libdir}/ganesha
 %{_libexecdir}/ganesha/nfs-ganesha-config.sh
-%dir %attr(0755,ganesha,ganesha) %{_localstatedir}/log/ganesha
+%dir %attr(0775,ganesha,ganesha) %{_localstatedir}/log/ganesha
 
 %if %{with_systemd}
 %{_unitdir}/nfs-ganesha.service
@@ -670,6 +678,9 @@ exit 0
 %endif
 
 %changelog
+* Tue Oct 10 2017 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.5.3-1
+- nfs-ganesha 2.5.3 GA
+
 * Mon Aug 28 2017 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.5.2-1
 - nfs-ganesha 2.5.2 GA
 
