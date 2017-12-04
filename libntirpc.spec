@@ -8,6 +8,7 @@ License:	BSD-3-Clause
 Url:		https://github.com/nfs-ganesha/ntirpc
 Source0:	https://github.com/nfs-ganesha/ntirpc/archive/v%{version}/ntirpc-%{version}.tar.gz
 BuildRequires:	cmake
+BuildRequires:	libnsl-devel
 BuildRequires:	krb5-devel
 
 %description
