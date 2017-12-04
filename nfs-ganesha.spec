@@ -117,6 +117,7 @@ BuildRequires:	krb5-devel
 BuildRequires:	dbus-1-devel
 Requires:	dbus-1
 BuildRequires:	systemd-rpm-macros
+#!BuildIgnore:	openssl
 %else
 BuildRequires:	dbus-devel
 Requires:	dbus
