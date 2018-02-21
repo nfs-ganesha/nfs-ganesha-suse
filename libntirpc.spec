@@ -1,6 +1,6 @@
 
 Name:		libntirpc
-Version:	1.5.3
+Version:	1.6.1
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	New Transport Independent RPC Library
 Group:		System/Libraries
@@ -24,14 +24,14 @@ the following features not found in libtirpc:
  5. Event channels (remove static arrays of xprt handles, new EPOLL/KEVENT
     integration)
 
-%package -n libntirpc1_5
+%package -n libntirpc1_6
 Summary:	New Transport Independent RPC Library
 Group:		System/Libraries
 # libtirpc has /etc/netconfig, most machines probably have it anyway
 # for NFS client
 Requires:	libtirpc3
 
-%description -n libntirpc1_5
+%description -n libntirpc1_6
 This package contains a new implementation of the original libtirpc, 
 transport-independent RPC (TI-RPC) library for NFS-Ganesha. It has
 the following features not found in libtirpc:
@@ -46,7 +46,7 @@ the following features not found in libtirpc:
 
 %package devel
 Summary:	Development headers for %{name}
-Requires:	%{name}1_5%{?_isa} = %{version}
+Requires:	%{name}1_6%{?_isa} = %{version}
 Group:		Development/Libraries/C and C++
 
 %description devel
@@ -73,11 +73,11 @@ install -p -m 644 build/libntirpc.pc %{buildroot}%{_libdir}/pkgconfig/
 mkdir -p %{buildroot}%{_defaultlicensedir}/%{name}
 install -c -m 0644 COPYING %{buildroot}%{_defaultlicensedir}/%{name}/
 
-%post -n libntirpc1_5 -p /sbin/ldconfig
+%post -n libntirpc1_6 -p /sbin/ldconfig
 
-%postun -n libntirpc1_5 -p /sbin/ldconfig
+%postun -n libntirpc1_6 -p /sbin/ldconfig
 
-%files -n libntirpc1_5
+%files -n libntirpc1_6
 %{_libdir}/libntirpc.so.*
 %doc NEWS README
 %dir %{_defaultlicensedir}
@@ -89,6 +89,9 @@ install -c -m 0644 COPYING %{buildroot}%{_defaultlicensedir}/%{name}/
 %{_libdir}/pkgconfig/libntirpc.pc
 
 %changelog
+* Wed Feb 21 2018 Kaleb S. KEITHLEY <kkeithle at redhat.com> 1.6.1-1
+- libntirpc 1.6.1 GA
+
 * Wed Jul 19 2017 Kaleb S. KEITHLEY <kkeithle at redhat.com> 1.5.3-1
 - libntirpc 1.5.3 GA
 
