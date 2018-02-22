@@ -99,7 +99,7 @@ Requires: openSUSE-release
 # %%global	dash_dev_version 2.5-final
 
 Name:		nfs-ganesha
-Version:	2.5.4
+Version:	2.6.0
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		Applications/System
@@ -113,6 +113,9 @@ BuildRequires:	bison
 BuildRequires:	flex
 BuildRequires:	pkgconfig
 BuildRequires:	krb5-devel
+%if ( 0%{?suse_version} >= 1330 )
+BuildRequires:  libnsl-devel
+%endif
 %if ( 0%{?suse_version} )
 BuildRequires:	dbus-1-devel
 Requires:	dbus-1
@@ -127,7 +130,7 @@ BuildRequires:	libblkid-devel
 BuildRequires:	libuuid-devel
 BuildRequires:	gcc-c++
 %if %{with system_ntirpc}
-BuildRequires:	libntirpc-devel >= 1.5.3
+BuildRequires:	libntirpc-devel >= 1.6.1
 %endif
 %if ( 0%{?fedora} )
 # this should effectively be a no-op, as all Fedora installs should have it
@@ -416,7 +419,6 @@ cd src && %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
 	-DDSANITIZE_ADDRESS=OFF				\
 	-DUSE_FSAL_NULL=%{use_fsal_null}		\
 	-DUSE_FSAL_MEM=%{use_fsal_mem}			\
-	-DUSE_FSAL_ZFS=NO				\
 	-DUSE_FSAL_XFS=%{use_fsal_xfs}			\
 	-DUSE_FSAL_CEPH=%{use_fsal_ceph}		\
 	-DUSE_FSAL_RGW=%{use_fsal_rgw}			\
@@ -697,7 +699,7 @@ exit 0
 %files -n libntirpc
 %defattr(-,root,root,-)
 %{_libdir}/libntirpc.so.@NTIRPC_VERSION_EMBED@
-%{_libdir}/libntirpc.so.1.5
+%{_libdir}/libntirpc.so.1.6
 %{_libdir}/libntirpc.so
 %{!?_licensedir:%global license %%doc}
 %license libntirpc/COPYING
@@ -750,6 +752,9 @@ exit 0
 %endif
 
 %changelog
+* Thu Feb 22 2018 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.6.0-1
+- nfs-ganesha 2.6.0 GA
+
 * Mon Dec 4 2017 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.5.4-1
 - nfs-ganesha 2.5.4 GA
 
