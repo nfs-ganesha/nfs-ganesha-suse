@@ -89,7 +89,7 @@ Requires: openSUSE-release
 # %%global	dash_dev_version 2.5-final
 
 Name:		nfs-ganesha
-Version:	2.6.1
+Version:	2.6.2
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		Applications/System
@@ -680,6 +680,9 @@ exit 0
 %endif
 
 %changelog
+* Mon May 14 2018 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.6.2-1
+- nfs-ganesha 2.6.2 GA
+
 * Wed Feb 21 2018 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.6.1-1
 - nfs-ganesha 2.6.1 GA
 
