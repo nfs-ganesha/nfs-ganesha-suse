@@ -451,7 +451,7 @@ make %{?_smp_mflags} || make %{?_smp_mflags} || make
 %install
 mkdir -p %{buildroot}%{_sysconfdir}/ganesha/
 mkdir -p %{buildroot}%{_sysconfdir}/dbus-1/system.d
-mkdir -p %{buildroot}%{_localstatedir}/adm/fillup-templates
+mkdir -p %{buildroot}%{_fillupdir}
 mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_sbindir}
@@ -473,7 +473,7 @@ mkdir -p %{buildroot}%{_unitdir}
 install -m 644 scripts/systemd/nfs-ganesha.service.el7	%{buildroot}%{_unitdir}/nfs-ganesha.service
 install -m 644 scripts/systemd/nfs-ganesha-lock.service.el7	%{buildroot}%{_unitdir}/nfs-ganesha-lock.service
 install -m 644 scripts/systemd/nfs-ganesha-config.service	%{buildroot}%{_unitdir}/nfs-ganesha-config.service
-install -m 644 scripts/systemd/sysconfig/nfs-ganesha	%{buildroot}%{_localstatedir}/adm/fillup-templates/ganesha
+install -m 644 scripts/systemd/sysconfig/nfs-ganesha	%{buildroot}%{_fillupdir}/sysconfig.ganesha
 %if 0%{?_tmpfilesdir:1}
 mkdir -p %{buildroot}%{_tmpfilesdir}
 install -m 644 scripts/systemd/tmpfiles.d/ganesha.conf	%{buildroot}%{_tmpfilesdir}
@@ -547,13 +547,18 @@ restorecon %{_localstatedir}/log/ganesha
 killall -SIGHUP dbus-daemon >/dev/null 2>&1 || :
 
 %pre
+%service_add_pre nfs-ganesha-config.service
+%service_add_pre nfs-ganesha-lock.service
+%service_add_pre nfs-ganesha.service
 getent group ganesha > /dev/null || groupadd -r ganesha
 getent passwd ganesha > /dev/null || useradd -r -g ganesha -d %{_rundir}/ganesha -s /sbin/nologin -c "NFS-Ganesha Daemon" ganesha
 exit 0
 
 %preun
 %if ( 0%{?suse_version} )
+%service_del_preun nfs-ganesha-config.service
 %service_del_preun nfs-ganesha-lock.service
+%service_del_preun nfs-ganesha.service
 %else
 %if %{with_systemd}
 %systemd_preun nfs-ganesha-lock.service
@@ -562,7 +567,9 @@ exit 0
 
 %postun
 %if ( 0%{?suse_version} )
+%service_del_postun nfs-ganesha-config.service
 %service_del_postun nfs-ganesha-lock.service
+%service_del_postun nfs-ganesha.service
 %debug_package
 %else
 %if %{with_systemd}
@@ -574,14 +581,16 @@ exit 0
 %license src/LICENSE.txt
 %{_bindir}/ganesha.nfsd
 %config %{_sysconfdir}/dbus-1/system.d/org.ganesha.nfsd.conf
-%config(noreplace) %{_localstatedir}/adm/fillup-templates/ganesha
+%dir %{_fillupdir}/
+%config(noreplace) %{_fillupdir}/sysconfig.ganesha
+%dir %attr(755,root,root) %{_sysconfdir}/logrotate.d/
 %config(noreplace) %{_sysconfdir}/logrotate.d/ganesha
 %dir %{_sysconfdir}/ganesha/
 %config(noreplace) %{_sysconfdir}/ganesha/ganesha.conf
 %dir %{_defaultdocdir}/ganesha/
 %{_defaultdocdir}/ganesha/*
 %doc src/ChangeLog
-%dir %{_rundir}/ganesha
+%ghost %dir %{_rundir}/ganesha
 %dir %{_libexecdir}/ganesha/
 %dir %{_libdir}/ganesha
 %{_libexecdir}/ganesha/nfs-ganesha-config.sh
