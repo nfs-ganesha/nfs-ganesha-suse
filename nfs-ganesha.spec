@@ -75,7 +75,7 @@ Requires: openSUSE-release
 %bcond_without utils
 %global use_utils %{on_off_switch utils}
 
-%bcond_without gui_utils
+%bcond_with gui_utils
 %global use_gui_utils %{on_off_switch gui_utils}
 
 %bcond_without system_ntirpc
@@ -99,7 +99,7 @@ Requires: openSUSE-release
 # %%global	dash_dev_version 2.5-final
 
 Name:		nfs-ganesha
-Version:	2.6.1
+Version:	2.6.2
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		Applications/System
@@ -222,11 +222,11 @@ Requires:	dbus-python, pygobject2, pyparsing
 %endif
 %if %{with gui_utils}
 %if ( 0%{?suse_version} )
-BuildRequires:	python-qt4-devel
-Requires:	python-qt4
+BuildRequires:	python-qt5-devel
+Requires:	python-qt5
 %else
-BuildRequires:	PyQt4-devel
-Requires:	PyQt4
+BuildRequires:	PyQt5-devel
+Requires:	PyQt5
 %endif
 %endif
 %if ( 0%{?suse_version} )
@@ -752,6 +752,9 @@ exit 0
 %endif
 
 %changelog
+* Mon May 14 2018 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.6.2-1
+- nfs-ganesha 2.6.2 GA
+
 * Wed Mar 21 2018 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.6.1-1
 - nfs-ganesha 2.6.1 GA
 
