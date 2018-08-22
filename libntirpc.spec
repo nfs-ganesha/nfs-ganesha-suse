@@ -1,6 +1,6 @@
 
 Name:		libntirpc
-Version:	1.6.2
+Version:	1.6.3
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	New Transport Independent RPC Library
 Group:		System/Libraries
@@ -9,6 +9,8 @@ Url:		https://github.com/nfs-ganesha/ntirpc
 Source0:	https://github.com/nfs-ganesha/ntirpc/archive/v%{version}/ntirpc-%{version}.tar.gz
 BuildRequires:	cmake
 BuildRequires:	krb5-devel
+# SLE_15 and Leap15
+BuildRequires:	libnsl-devel
 
 %description
 This package contains a new implementation of the original libtirpc, 
@@ -88,6 +90,9 @@ install -c -m 0644 COPYING %{buildroot}%{_defaultlicensedir}/%{name}/
 %{_libdir}/pkgconfig/libntirpc.pc
 
 %changelog
+* Wed Aug 22 2018 Kaleb S. KEITHLEY <kkeithle at redhat.com> 1.6.3-1
+- libntirpc 1.6.3 GA
+
 * Wed Mar 21 2018 Kaleb S. KEITHLEY <kkeithle at redhat.com> 1.6.2-1
 - libntirpc 1.6.2 GA
 
