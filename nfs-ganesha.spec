@@ -215,7 +215,9 @@ Requires:	dbus-python, pygobject2, pyparsing
 %endif
 %if %{with gui_utils}
 %if ( 0%{?suse_version} )
+BuildRequires:	python-dbus-python-devel
 BuildRequires:	python-qt4-devel
+BuildRequires:	python-dbus-python
 Requires:	python-qt4
 %else
 BuildRequires:	PyQt4-devel
