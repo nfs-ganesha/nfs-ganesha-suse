@@ -683,10 +683,10 @@ exit 0
 * Mon May 14 2018 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.6.2-1
 - nfs-ganesha 2.6.2 GA
 
-* Wed Feb 21 2018 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.6.1-1
+* Thu Feb 22 2018 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.6.1-1
 - nfs-ganesha 2.6.1 GA
 
-* Thu Feb 22 2018 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.6.0-1
+* Wed Feb 21 2018 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.6.0-1
 - nfs-ganesha 2.6.0 GA
 
 * Tue Oct 10 2017 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.5.3-1
