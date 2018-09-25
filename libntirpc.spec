@@ -9,8 +9,6 @@ Url:		https://github.com/nfs-ganesha/ntirpc
 Source0:	https://github.com/nfs-ganesha/ntirpc/archive/v%{version}/ntirpc-%{version}.tar.gz
 BuildRequires:	cmake
 BuildRequires:	krb5-devel
-# SLE_15 and Leap15
-BuildRequires:	libnsl-devel
 
 %description
 This package contains a new implementation of the original libtirpc, 
