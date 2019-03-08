@@ -72,7 +72,7 @@ Requires: openSUSE-release
 
 %bcond_with jemalloc
 
-%bcond_without lttng
+%bcond_with lttng
 %global use_lttng %{on_off_switch lttng}
 
 %bcond_without utils
@@ -84,7 +84,7 @@ Requires: openSUSE-release
 %bcond_without system_ntirpc
 %global use_system_ntirpc %{on_off_switch system_ntirpc}
 
-%bcond_without man_page
+%bcond_with man_page
 %global use_man_page %{on_off_switch man_page}
 
 %bcond_with rados_recov
