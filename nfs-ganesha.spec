@@ -621,7 +621,7 @@ exit 0
 %license src/LICENSE.txt
 %{_bindir}/ganesha.nfsd
 %config %{_sysconfdir}/dbus-1/system.d/org.ganesha.nfsd.conf
-%dir %{_fillupdir}/
+%dir %{_fillupdir}
 %config(noreplace) %{_fillupdir}/sysconfig.ganesha
 %dir %attr(755,root,root) %{_sysconfdir}/logrotate.d/
 %config(noreplace) %{_sysconfdir}/logrotate.d/ganesha
