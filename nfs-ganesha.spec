@@ -70,6 +70,9 @@ Requires: openSUSE-release
 %bcond_with rdma
 %global use_rdma %{on_off_switch rdma}
 
+%bcond_with 9P
+%global use_9P %{on_off_switch 9P}
+
 %bcond_with jemalloc
 
 %bcond_with lttng
@@ -108,7 +111,7 @@ Requires: openSUSE-release
 # %%global	dash_dev_version 2.5-final
 
 Name:		nfs-ganesha
-Version:	2.7.3
+Version:	2.8.0
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		System/Filesystems
@@ -116,11 +119,13 @@ License:	LGPL-3.0+
 Url:		https://github.com/nfs-ganesha/nfs-ganesha/wiki
 
 Source0:	https://github.com/%{name}/%{name}/archive/V%{version}/%{name}-%{version}.tar.gz
+Patch1:		0001-src-scripts-ganeshactl-CMakeLists.txt.patch
 
 BuildRequires:	cmake
 BuildRequires:	bison
 BuildRequires:	flex
 BuildRequires:	pkgconfig
+BuildRequires:	liburcu-devel
 BuildRequires:	krb5-devel
 %if ( 0%{?suse_version} >= 1330 )
 BuildRequires:  libnsl-devel
@@ -142,7 +147,7 @@ BuildRequires:	gcc-c++
 BuildRequires: libwbclient-devel
 %endif
 %if ( %{with_system_ntirpc} )
-BuildRequires:	libntirpc-devel >= 1.7.3
+BuildRequires:	libntirpc-devel >= 1.8.0
 %endif
 %if ( 0%{?fedora} )
 # this should effectively be a no-op, as all Fedora installs should have it
@@ -197,6 +202,7 @@ nfs-ganesha : NFS-GANESHA is a NFS Server running in user space.
 It comes with various back-end modules (called FSALs) provided as
 shared objects to support different file systems and name-spaces.
 
+%if %{with 9P}
 %package mount-9P
 Summary:	A 9p mount helper
 Group:		System/Filesystems
@@ -204,6 +210,7 @@ Group:		System/Filesystems
 %description mount-9P
 This package contains the mount.9P script that clients can use
 to simplify mounting to NFS-GANESHA. This is a 9p mount helper.
+%endif
 
 %package vfs
 Summary:	The NFS-GANESHA's VFS FSAL
@@ -231,7 +238,9 @@ be used with NFS-Ganesha to support PROXY based filesystems
 Summary:	The NFS-GANESHA's util scripts
 Group:		System/Filesystems
 %if ( 0%{?suse_version} )
-Requires:	dbus-1-python, python-gobject2 python-pyparsing
+BuildRequires:	python3-devel
+Requires:	dbus-1-python, python3-gobject2 python3-pyparsing
+Requires:	gpfs.nfs-ganesha = %{version}-%{release}, python3
 %else
 Requires:	dbus-python, pygobject2, pyparsing
 %endif
@@ -243,13 +252,6 @@ Requires:	python-qt5
 BuildRequires:	PyQt5-devel
 Requires:	PyQt5
 %endif
-%endif
-%if ( 0%{?suse_version} )
-BuildRequires:	python-devel
-Requires: nfs-ganesha = %{version}-%{release}, python
-%else
-BuildRequires:	python2-devel
-Requires: nfs-ganesha = %{version}-%{release}, python2
 %endif
 
 %description utils
@@ -394,7 +396,7 @@ be used with NFS-Ganesha to support PANFS
 Summary:	The NFS-GANESHA's GLUSTER FSAL
 Group:		System/Filesystems
 Requires:	nfs-ganesha = %{version}-%{release}
-BuildRequires:	glusterfs-devel >= 3.12.3
+BuildRequires:	glusterfs-devel >= 6.0
 BuildRequires:	libattr-devel, libacl-devel
 
 %description gluster
@@ -443,6 +445,7 @@ Development headers and auxiliary files for developing with %{name}.
 %prep
 %setup -q -n %{name}-%{version}
 rm -rf contrib/libzfswrapper
+%patch1 -p1
 
 %build
 cd src && %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
@@ -467,7 +470,7 @@ cd src && %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
 	-DUSE_FSAL_VFS=ON				\
 	-DUSE_FSAL_PROXY=ON				\
 	-DUSE_DBUS=ON					\
-	-DUSE_9P=ON					\
+	-DUSE_9P=%{use_9P}				\
 	-DDISTNAME_HAS_GIT_DATA=OFF			\
 	-DCMAKE_C_FLAGS="-fmessage-length=0 -grecord-gcc-switches -fstack-protector -O2 -Wall -D_FORTIFY_SOURCE=2 -funwind-tables -fasynchronous-unwind-tables -DNDEBUG -fPIC" \
 	-DCMAKE_EXE_LINKER_FLAGS="-Wl,-z,relro"		\
@@ -478,7 +481,7 @@ cd src && %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
 	-DALLOCATOR=jemalloc
 %endif
 
-make %{?_smp_mflags} || make %{?_smp_mflags} || make
+make VERBOSE=1 %{?_smp_mflags} || make %{?_smp_mflags} || make
 
 %install
 mkdir -p %{buildroot}%{_sysconfdir}/ganesha/
@@ -494,7 +497,9 @@ cd src
 install -m 644 config_samples/logrotate_ganesha	%{buildroot}%{_sysconfdir}/logrotate.d/ganesha
 install -m 644 scripts/ganeshactl/org.ganesha.nfsd.conf	%{buildroot}%{_sysconfdir}/dbus-1/system.d
 install -m 755 scripts/nfs-ganesha-config.sh	%{buildroot}%{_libexecdir}/ganesha
+%if %{with 9P}
 install -m 755 tools/mount.9P	%{buildroot}%{_sbindir}/mount.9P
+%endif
 install -m 644 config_samples/vfs.conf %{buildroot}%{_sysconfdir}/ganesha
 %if %{with rgw}
 install -m 644 config_samples/rgw.conf %{buildroot}%{_sysconfdir}/ganesha
@@ -530,10 +535,6 @@ install -m 644 config_samples/xfs.conf %{buildroot}%{_sysconfdir}/ganesha
 install -m 644 config_samples/ceph.conf %{buildroot}%{_sysconfdir}/ganesha
 %endif
 
-%if %{with rados_recov}
-install -m 755 tools/ganesha-rados-grace       %{buildroot}%{_bindir}/ganesha-rados-grace
-%endif
-
 %if %{with rgw}
 install -m 644 config_samples/rgw.conf %{buildroot}%{_sysconfdir}/ganesha
 install -m 644 config_samples/rgw_bucket.conf %{buildroot}%{_sysconfdir}/ganesha
@@ -559,11 +560,11 @@ install -m 755 scripts/init.d/nfs-ganesha.gpfs		%{buildroot}%{_sysconfdir}/init.
 
 make -C build DESTDIR=%{buildroot} install
 
-find "%{buildroot}%{python_sitelib}/" -name '*.pyc' \
+find "%{buildroot}%{python3_sitelib}/" -name '*.pyc' \
 -exec %__rm {} \;
 %__python -c 'import compileall;
-compileall.compile_dir("%{buildroot}%{python_sitelib}/",
-ddir="%{python_sitelib}/",
+compileall.compile_dir("%{buildroot}%{python3_sitelib}/",
+ddir="%{python3_sitelib}/",
 force=1)'
 
 %post
@@ -620,9 +621,10 @@ exit 0
 %files
 %license src/LICENSE.txt
 %{_bindir}/ganesha.nfsd
+%{_libdir}/libganesha_nfsd.so*
 %config %{_sysconfdir}/dbus-1/system.d/org.ganesha.nfsd.conf
-%dir %{_fillupdir}
-%config(noreplace) %{_fillupdir}/sysconfig.ganesha
+%dir %{_sysconfdir}/ganesha/
+%config(noreplace) %{_sysconfdir}/ganesha/ganesha.conf
 %dir %attr(755,root,root) %{_sysconfdir}/logrotate.d/
 %config(noreplace) %{_sysconfdir}/logrotate.d/ganesha
 %dir %{_sysconfdir}/ganesha/
@@ -664,10 +666,12 @@ exit 0
 %endif
 %endif
 
+%if %{with 9P}
 %files mount-9P
 %{_sbindir}/mount.9P
 %if %{with man_page}
 %{_mandir}/*/ganesha-9p-config.8.gz
+%endif
 %endif
 
 %files vfs
@@ -789,9 +793,9 @@ exit 0
 %if %{with utils}
 %files utils
 %if ( 0%{?suse_version} )
-%dir %{python_sitelib}/Ganesha
-%{python_sitelib}/Ganesha/*
-%{python_sitelib}/ganeshactl-*-info
+%dir %{python3_sitelib}/Ganesha
+%{python3_sitelib}/Ganesha/*
+%{python3_sitelib}/ganeshactl-*-info
 %else
 %dir %{python_sitelib}/Ganesha
 %{python2_sitelib}/Ganesha/*
@@ -803,8 +807,13 @@ exit 0
 %{_bindir}/manage_exports
 %{_bindir}/manage_logger
 %{_bindir}/ganeshactl
+%if %{with 9P}
 %{_bindir}/client_stats_9pOps
 %{_bindir}/export_stats_9pOps
+%else
+%exclude %{_bindir}/client_stats_9pOps
+%exclude %{_bindir}/export_stats_9pOps
+%endif
 %endif
 %{_bindir}/fake_recall
 %{_bindir}/get_clientids
@@ -817,6 +826,9 @@ exit 0
 %endif
 
 %changelog
+* Fri May 31 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.8.0-1
+- nfs-ganesha 2.8.0 GA
+
 * Tue Apr 9 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.7.3-1
 - nfs-ganesha 2.7.3 GA
 
