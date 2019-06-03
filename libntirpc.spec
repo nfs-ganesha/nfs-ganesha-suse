@@ -1,6 +1,6 @@
 
 Name:		libntirpc
-Version:	1.7.3
+Version:	1.8.0
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	New Transport Independent RPC Library
 Group:		System/Libraries
@@ -9,6 +9,7 @@ Url:		https://github.com/nfs-ganesha/ntirpc
 Source0:	https://github.com/nfs-ganesha/ntirpc/archive/v%{version}/ntirpc-%{version}.tar.gz
 BuildRequires:	cmake
 BuildRequires:	krb5-devel
+BuildRequires:	liburcu-devel
 # SLE_15 and Leap15
 BuildRequires:	libnsl-devel
 
@@ -90,6 +91,9 @@ install -c -m 0644 COPYING %{buildroot}%{_defaultlicensedir}/%{name}/
 %{_libdir}/pkgconfig/libntirpc.pc
 
 %changelog
+* Fri May 31 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 1.8.0-1
+- libntirpc 1.8.0 GA
+
 * Tue Apr 9 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 1.7.3-1
 - libntirpc 1.7.3 GA
 
