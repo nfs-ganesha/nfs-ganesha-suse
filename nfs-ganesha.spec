@@ -55,10 +55,18 @@ Requires: openSUSE-release
 %bcond_with lustre
 %global use_fsal_lustre %{on_off_switch lustre}
 
+%ifarch x86_64
+%bcond_without ceph
+%else
 %bcond_with ceph
+%endif
 %global use_fsal_ceph %{on_off_switch ceph}
 
+%ifarch x86_64
+%bcond_without rgw
+%else
 %bcond_with rgw
+%endif
 %global use_fsal_rgw %{on_off_switch rgw}
 
 %bcond_without gluster
@@ -90,10 +98,18 @@ Requires: openSUSE-release
 %bcond_without man_page
 %global use_man_page %{on_off_switch man_page}
 
+%ifarch x86_64
+%bcond_without rados_recov
+%else
 %bcond_with rados_recov
+%endif
 %global use_rados_recov %{on_off_switch rados_recov}
  
+%ifarch x86_64
+%bcond_without rados_urls
+%else
 %bcond_with rados_urls
+%endif
 %global use_rados_urls %{on_off_switch rados_urls}
 
 %bcond_without rpcbind
@@ -275,7 +291,7 @@ to the ganesha.nfsd server, it makes it possible to trace using LTTng.
 %package rados-grace
 Summary:	The NFS-GANESHA's command for managing the RADOS grace database
 Group:		System/Filesystems
-BuildRequires:	librados-devel >= 0.61
+BuildRequires:	librados-devel >= 14.2.1
 Requires:	nfs-ganesha = %{version}-%{release}
 
 %description rados-grace
@@ -329,7 +345,7 @@ be used with NFS-Ganesha to support GPFS backend
 Summary:	The NFS-GANESHA's CephFS FSAL
 Group:		System/Filesystems
 Requires:	nfs-ganesha = %{version}-%{release}
-BuildRequires:	libcephfs1-devel >= 10.2.7
+BuildRequires:	libcephfs-devel >= 14.2.1
 
 %description ceph
 This package contains a FSAL shared object to
@@ -342,7 +358,7 @@ be used with NFS-Ganesha to support CephFS
 Summary:	The NFS-GANESHA's Ceph RGW FSAL
 Group:		System/Filesystems
 Requires:	nfs-ganesha = %{version}-%{release}
-BuildRequires:	librgw2-devel >= 10.2.7
+BuildRequires:	librgw-devel >= 14.2.1
 
 %description rgw
 This package contains a FSAL shared object to
