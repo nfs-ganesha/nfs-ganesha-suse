@@ -56,14 +56,14 @@ Requires: openSUSE-release
 %global use_fsal_lustre %{on_off_switch lustre}
 
 %ifarch x86_64
-%bcond_without ceph
+%bcond_with ceph
 %else
 %bcond_with ceph
 %endif
 %global use_fsal_ceph %{on_off_switch ceph}
 
 %ifarch x86_64
-%bcond_without rgw
+%bcond_with rgw
 %else
 %bcond_with rgw
 %endif
@@ -99,14 +99,14 @@ Requires: openSUSE-release
 %global use_man_page %{on_off_switch man_page}
 
 %ifarch x86_64
-%bcond_without rados_recov
+%bcond_with rados_recov
 %else
 %bcond_with rados_recov
 %endif
 %global use_rados_recov %{on_off_switch rados_recov}
  
 %ifarch x86_64
-%bcond_without rados_urls
+%bcond_with rados_urls
 %else
 %bcond_with rados_urls
 %endif
