@@ -128,14 +128,15 @@ Requires: openSUSE-release
 
 Name:		nfs-ganesha
 Version:	2.8.0
-Release:	1%{?dev:%{dev}}%{?dist}
+Release:	2%{?dev:%{dev}}%{?dist}
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		System/Filesystems
 License:	LGPL-3.0+
 Url:		https://github.com/nfs-ganesha/nfs-ganesha/wiki
 
 Source0:	https://github.com/%{name}/%{name}/archive/V%{version}/%{name}-%{version}.tar.gz
-Patch1:		0001-src-scripts-ganeshactl-CMakeLists.txt.patch
+Patch1:		0001-nfs-ganesha_2801.patch
+Patch2:		0001-src-scripts-ganeshactl-CMakeLists.txt.patch
 
 BuildRequires:	cmake
 BuildRequires:	bison
@@ -462,6 +463,7 @@ Development headers and auxiliary files for developing with %{name}.
 %setup -q -n %{name}-%{version}
 rm -rf contrib/libzfswrapper
 %patch1 -p1
+%patch2 -p1
 
 %build
 cd src && %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
@@ -842,6 +844,9 @@ exit 0
 %endif
 
 %changelog
+* Thu Jun 13 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.8.0-2
+- nfs-ganesha 2.8.0.1
+
 * Fri May 31 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.8.0-1
 - nfs-ganesha 2.8.0 GA
 
