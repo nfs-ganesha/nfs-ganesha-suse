@@ -55,10 +55,18 @@ Requires: openSUSE-release
 %bcond_with lustre
 %global use_fsal_lustre %{on_off_switch lustre}
 
+%ifarch x86_64
 %bcond_with ceph
+%else
+%bcond_with ceph
+%endif
 %global use_fsal_ceph %{on_off_switch ceph}
 
+%ifarch x86_64
 %bcond_with rgw
+%else
+%bcond_with rgw
+%endif
 %global use_fsal_rgw %{on_off_switch rgw}
 
 %bcond_without gluster
@@ -90,10 +98,18 @@ Requires: openSUSE-release
 %bcond_with man_page
 %global use_man_page %{on_off_switch man_page}
 
+%ifarch x86_64
 %bcond_with rados_recov
+%else
+%bcond_with rados_recov
+%endif
 %global use_rados_recov %{on_off_switch rados_recov}
  
+%ifarch x86_64
 %bcond_with rados_urls
+%else
+%bcond_with rados_urls
+%endif
 %global use_rados_urls %{on_off_switch rados_urls}
 
 %bcond_without rpcbind
@@ -112,14 +128,15 @@ Requires: openSUSE-release
 
 Name:		nfs-ganesha
 Version:	2.8.0
-Release:	1%{?dev:%{dev}}%{?dist}
+Release:	2%{?dev:%{dev}}%{?dist}
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		System/Filesystems
 License:	LGPL-3.0+
 Url:		https://github.com/nfs-ganesha/nfs-ganesha/wiki
 
 Source0:	https://github.com/%{name}/%{name}/archive/V%{version}/%{name}-%{version}.tar.gz
-Patch1:		0001-src-scripts-ganeshactl-CMakeLists.txt.patch
+Patch1:		0001-nfs-ganesha_2801.patch
+Patch2:		0001-src-scripts-ganeshactl-CMakeLists.txt.patch
 
 BuildRequires:	cmake
 BuildRequires:	bison
@@ -275,7 +292,7 @@ to the ganesha.nfsd server, it makes it possible to trace using LTTng.
 %package rados-grace
 Summary:	The NFS-GANESHA's command for managing the RADOS grace database
 Group:		System/Filesystems
-BuildRequires:	librados-devel >= 0.61
+BuildRequires:	librados-devel >= 14.2.1
 Requires:	nfs-ganesha = %{version}-%{release}
 
 %description rados-grace
@@ -329,7 +346,7 @@ be used with NFS-Ganesha to support GPFS backend
 Summary:	The NFS-GANESHA's CephFS FSAL
 Group:		System/Filesystems
 Requires:	nfs-ganesha = %{version}-%{release}
-BuildRequires:	libcephfs1-devel >= 10.2.7
+BuildRequires:	libcephfs-devel >= 14.2.1
 
 %description ceph
 This package contains a FSAL shared object to
@@ -342,7 +359,7 @@ be used with NFS-Ganesha to support CephFS
 Summary:	The NFS-GANESHA's Ceph RGW FSAL
 Group:		System/Filesystems
 Requires:	nfs-ganesha = %{version}-%{release}
-BuildRequires:	librgw2-devel >= 10.2.7
+BuildRequires:	librgw-devel >= 14.2.1
 
 %description rgw
 This package contains a FSAL shared object to
@@ -446,6 +463,7 @@ Development headers and auxiliary files for developing with %{name}.
 %setup -q -n %{name}-%{version}
 rm -rf contrib/libzfswrapper
 %patch1 -p1
+%patch2 -p1
 
 %build
 cd src && %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
@@ -486,7 +504,7 @@ make VERBOSE=1 %{?_smp_mflags} || make %{?_smp_mflags} || make
 %install
 mkdir -p %{buildroot}%{_sysconfdir}/ganesha/
 mkdir -p %{buildroot}%{_sysconfdir}/dbus-1/system.d
-mkdir -p %{buildroot}%{_fillupdir}
+mkdir -p %{buildroot}/var/adm/fillup-templates
 mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_sbindir}
@@ -510,7 +528,7 @@ mkdir -p %{buildroot}%{_unitdir}
 install -m 644 scripts/systemd/nfs-ganesha.service.el7	%{buildroot}%{_unitdir}/nfs-ganesha.service
 install -m 644 scripts/systemd/nfs-ganesha-lock.service.el7	%{buildroot}%{_unitdir}/nfs-ganesha-lock.service
 install -m 644 scripts/systemd/nfs-ganesha-config.service	%{buildroot}%{_unitdir}/nfs-ganesha-config.service
-install -m 644 scripts/systemd/sysconfig/nfs-ganesha	%{buildroot}%{_fillupdir}/sysconfig.ganesha
+install -m 644 scripts/systemd/sysconfig/nfs-ganesha	%{buildroot}/var/adm/fillup-templates/sysconfig.ganesha
 %if 0%{?_tmpfilesdir:1}
 mkdir -p %{buildroot}%{_tmpfilesdir}
 install -m 644 scripts/systemd/tmpfiles.d/ganesha.conf	%{buildroot}%{_tmpfilesdir}
@@ -623,8 +641,8 @@ exit 0
 %{_bindir}/ganesha.nfsd
 %{_libdir}/libganesha_nfsd.so*
 %config %{_sysconfdir}/dbus-1/system.d/org.ganesha.nfsd.conf
-%dir %{_sysconfdir}/ganesha/
-%config(noreplace) %{_sysconfdir}/ganesha/ganesha.conf
+%dir /var/adm/fillup-templates
+%config(noreplace) /var/adm/fillup-templates/sysconfig.ganesha
 %dir %attr(755,root,root) %{_sysconfdir}/logrotate.d/
 %config(noreplace) %{_sysconfdir}/logrotate.d/ganesha
 %dir %{_sysconfdir}/ganesha/
@@ -826,6 +844,9 @@ exit 0
 %endif
 
 %changelog
+* Thu Jun 13 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.8.0-2
+- nfs-ganesha 2.8.0.1
+
 * Fri May 31 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.8.0-1
 - nfs-ganesha 2.8.0 GA
 
