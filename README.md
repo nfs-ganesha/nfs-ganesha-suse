@@ -5,7 +5,7 @@ What is this?
 ---------------
 
 This is the source package for [nfs-ganesha] that is used to build 
-SuSE pacakges which are published on [build.opensuse.org]
+SuSE packages which are published on [build.opensuse.org]
 
 The interesting stuff is in branches dedicated to nfs-ganesha, (lib)ntirpc,
 and & distro releases.
