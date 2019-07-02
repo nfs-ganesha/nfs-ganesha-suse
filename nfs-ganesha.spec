@@ -55,18 +55,10 @@ Requires: openSUSE-release
 %bcond_with lustre
 %global use_fsal_lustre %{on_off_switch lustre}
 
-%ifarch x86_64
 %bcond_with ceph
-%else
-%bcond_with ceph
-%endif
 %global use_fsal_ceph %{on_off_switch ceph}
 
-%ifarch x86_64
 %bcond_with rgw
-%else
-%bcond_with rgw
-%endif
 %global use_fsal_rgw %{on_off_switch rgw}
 
 %bcond_without gluster
@@ -98,18 +90,10 @@ Requires: openSUSE-release
 %bcond_without man_page
 %global use_man_page %{on_off_switch man_page}
 
-%ifarch x86_64
 %bcond_with rados_recov
-%else
-%bcond_with rados_recov
-%endif
 %global use_rados_recov %{on_off_switch rados_recov}
  
-%ifarch x86_64
 %bcond_with rados_urls
-%else
-%bcond_with rados_urls
-%endif
 %global use_rados_urls %{on_off_switch rados_urls}
 
 %bcond_without rpcbind
@@ -128,15 +112,17 @@ Requires: openSUSE-release
 
 Name:		nfs-ganesha
 Version:	2.8.0
-Release:	2%{?dev:%{dev}}%{?dist}
+Release:	14.1
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		System/Filesystems
 License:	LGPL-3.0+
 Url:		https://github.com/nfs-ganesha/nfs-ganesha/wiki
 
 Source0:	https://github.com/%{name}/%{name}/archive/V%{version}/%{name}-%{version}.tar.gz
-Patch1:		0001-nfs-ganesha_2801.patch
-Patch2:		0001-src-scripts-ganeshactl-CMakeLists.txt.patch
+Patch1:		0001-src-scripts-ganeshactl-CMakeLists.txt.patch
+Patch2:		0001-nfs-ganesha_2801.patch
+Patch3:		0002-nfs-ganesha_2802.patch
+Patch4:		0003-nfs-ganesha_2803.patch
 
 BuildRequires:	cmake
 BuildRequires:	bison
@@ -151,7 +137,7 @@ BuildRequires:  libnsl-devel
 BuildRequires:	dbus-1-devel
 Requires:	dbus-1
 BuildRequires:	systemd-rpm-macros
-#!BuildIgnore:	openssl
+BuildRequires:	openssl
 %else
 BuildRequires:	dbus-devel
 Requires:	dbus
@@ -464,6 +450,8 @@ Development headers and auxiliary files for developing with %{name}.
 rm -rf contrib/libzfswrapper
 %patch1 -p1
 %patch2 -p1
+%patch3 -p1
+%patch4 -p1
 
 %build
 cd src && %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
@@ -844,6 +832,9 @@ exit 0
 %endif
 
 %changelog
+* Tue Jul 2 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.8.0-3
+- nfs-ganesha 2.8.0.3
+
 * Thu Jun 13 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.8.0-2
 - nfs-ganesha 2.8.0.1
 
