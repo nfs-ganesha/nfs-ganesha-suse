@@ -127,8 +127,8 @@ Requires: openSUSE-release
 # %%global	dash_dev_version 2.5-final
 
 Name:		nfs-ganesha
-Version:	2.8.0
-Release:	3%{?dev:%{dev}}%{?dist}
+Version:	2.8.2
+Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		System/Filesystems
 License:	LGPL-3.0+
@@ -136,9 +136,6 @@ Url:		https://github.com/nfs-ganesha/nfs-ganesha/wiki
 
 Source0:	https://github.com/%{name}/%{name}/archive/V%{version}/%{name}-%{version}.tar.gz
 Patch1:		0001-src-scripts-ganeshactl-CMakeLists.txt.patch
-Patch2:		0001-nfs-ganesha_2801.patch
-Patch3:		0002-nfs-ganesha_2802.patch
-Patch4:		0003-nfs-ganesha_2803.patch
 
 BuildRequires:	cmake
 BuildRequires:	bison
@@ -166,7 +163,7 @@ BuildRequires:	gcc-c++
 BuildRequires: libwbclient-devel
 %endif
 %if ( %{with_system_ntirpc} )
-BuildRequires:	libntirpc-devel >= 1.8.0
+BuildRequires:	libntirpc-devel = 1.8.0
 %endif
 %if ( 0%{?fedora} )
 # this should effectively be a no-op, as all Fedora installs should have it
@@ -465,9 +462,6 @@ Development headers and auxiliary files for developing with %{name}.
 %setup -q -n %{name}-%{version}
 rm -rf contrib/libzfswrapper
 %patch1 -p1
-%patch2 -p1
-%patch3 -p1
-%patch4 -p1
 
 %build
 cd src && %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
@@ -848,6 +842,9 @@ exit 0
 %endif
 
 %changelog
+* Wed Jul 24 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.8.2-1
+- nfs-ganesha 2.8.2 GA
+
 * Tue Jul 2 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.8.0-3
 - nfs-ganesha 2.8.0.3
 
