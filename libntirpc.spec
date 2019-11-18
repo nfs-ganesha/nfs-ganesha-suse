@@ -1,6 +1,6 @@
 
 Name:		libntirpc
-Version:	1.8.0
+Version:	3.0
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	New Transport Independent RPC Library
 Group:		System/Libraries
@@ -26,14 +26,15 @@ the following features not found in libtirpc:
  5. Event channels (remove static arrays of xprt handles, new EPOLL/KEVENT
     integration)
 
-%package -n libntirpc1_8
+%package -n libntirpc3_0
 Summary:	New Transport Independent RPC Library
 Group:		System/Libraries
 # libtirpc has /etc/netconfig, most machines probably have it anyway
 # for NFS client
 Requires:	libtirpc3
+Obsoletes:	libntirpc1_8
 
-%description -n libntirpc1_8
+%description -n libntirpc3_0
 This package contains a new implementation of the original libtirpc, 
 transport-independent RPC (TI-RPC) library for NFS-Ganesha. It has
 the following features not found in libtirpc:
@@ -48,7 +49,7 @@ the following features not found in libtirpc:
 
 %package devel
 Summary:	Development headers for %{name}
-Requires:	%{name}1_8%{?_isa} = %{version}
+Requires:	%{name}3_0%{?_isa} = %{version}
 Group:		Development/Libraries/C and C++
 
 %description devel
@@ -67,7 +68,7 @@ make %{?_smp_mflags}
 ## make install DESTDIR=%%{buildroot}
 mkdir -p %{buildroot}%{_libdir}/pkgconfig
 install -p -m 0755 build/src/%{name}.so.%{version} %{buildroot}%{_libdir}/
-ln -s %{name}.so.%{version} %{buildroot}%{_libdir}/%{name}.so.1
+ln -s %{name}.so.%{version} %{buildroot}%{_libdir}/%{name}.so.3
 ln -s %{name}.so.%{version} %{buildroot}%{_libdir}/%{name}.so
 mkdir -p %{buildroot}%{_includedir}/ntirpc
 cp -a ntirpc %{buildroot}%{_includedir}/
@@ -75,11 +76,11 @@ install -p -m 644 build/libntirpc.pc %{buildroot}%{_libdir}/pkgconfig/
 mkdir -p %{buildroot}%{_defaultlicensedir}/%{name}
 install -c -m 0644 COPYING %{buildroot}%{_defaultlicensedir}/%{name}/
 
-%post -n libntirpc1_8 -p /sbin/ldconfig
+%post -n libntirpc3_0 -p /sbin/ldconfig
 
-%postun -n libntirpc1_8 -p /sbin/ldconfig
+%postun -n libntirpc3_0 -p /sbin/ldconfig
 
-%files -n libntirpc1_8
+%files -n libntirpc3_0
 %{_libdir}/libntirpc.so.*
 %doc NEWS README
 %dir %{_defaultlicensedir}
@@ -91,6 +92,9 @@ install -c -m 0644 COPYING %{buildroot}%{_defaultlicensedir}/%{name}/
 %{_libdir}/pkgconfig/libntirpc.pc
 
 %changelog
+* Fri Nov 15 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 3.0-1
+- libntirpc 3.0 GA
+
 * Fri May 31 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 1.8.0-1
 - libntirpc 1.8.0 GA
 
