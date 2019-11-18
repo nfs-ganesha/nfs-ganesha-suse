@@ -72,6 +72,7 @@ ln -s %{name}.so.%{version} %{buildroot}%{_libdir}/%{name}.so.3
 ln -s %{name}.so.%{version} %{buildroot}%{_libdir}/%{name}.so
 mkdir -p %{buildroot}%{_includedir}/ntirpc
 cp -a ntirpc %{buildroot}%{_includedir}/
+install -p -m 644 build/ntirpc/version.h %{buildroot}%{_includedir}/ntirpc
 install -p -m 644 build/libntirpc.pc %{buildroot}%{_libdir}/pkgconfig/
 mkdir -p %{buildroot}%{_defaultlicensedir}/%{name}
 install -c -m 0644 COPYING %{buildroot}%{_defaultlicensedir}/%{name}/
