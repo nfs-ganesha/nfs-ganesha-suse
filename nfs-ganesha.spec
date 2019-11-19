@@ -111,7 +111,7 @@ Requires: openSUSE-release
 # %%global	dash_dev_version 2.5-final
 
 Name:		nfs-ganesha
-Version:	2.8.2
+Version:	3.0
 Release:	1
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		System/Filesystems
@@ -120,6 +120,7 @@ Url:		https://github.com/nfs-ganesha/nfs-ganesha/wiki
 
 Source0:	https://github.com/%{name}/%{name}/archive/V%{version}/%{name}-%{version}.tar.gz
 Patch1:		0001-src-scripts-ganeshactl-CMakeLists.txt.patch
+Patch2:		0002-src-CMakeLists.text.patch
 
 BuildRequires:	cmake
 BuildRequires:	bison
@@ -147,7 +148,7 @@ BuildRequires:	gcc-c++
 BuildRequires: libwbclient-devel
 %endif
 %if ( %{with_system_ntirpc} )
-BuildRequires:	libntirpc-devel = 1.8.0
+BuildRequires:	libntirpc-devel = 3.0
 %endif
 %if ( 0%{?fedora} )
 # this should effectively be a no-op, as all Fedora installs should have it
@@ -281,6 +282,17 @@ Requires:	nfs-ganesha = %{version}-%{release}
 %description rados-grace
 This package contains the ganesha-rados-grace tool for interacting with the
 database used by the rados_cluster recovery backend.
+%endif
+
+%if %{with rados_urls}
+%package rados-urls
+Summary: The NFS-GANESHA library for use with RADOS URLs
+Group: Applications/System
+Requires: nfs-ganesha = %{version}-%{release}
+
+%description rados-urls
+This package contains the libganesha_rados_urls library used for
+handling RADOS URL configurations.
 %endif
 
 # Option packages start here. use "rpmbuild --with gpfs" (or equivalent)
@@ -446,6 +458,7 @@ Development headers and auxiliary files for developing with %{name}.
 %setup -q -n %{name}-%{version}
 rm -rf contrib/libzfswrapper
 %patch1 -p1
+%patch2 -p1
 
 %build
 cd src && %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
@@ -511,10 +524,6 @@ install -m 644 scripts/systemd/nfs-ganesha.service.el7	%{buildroot}%{_unitdir}/n
 install -m 644 scripts/systemd/nfs-ganesha-lock.service.el7	%{buildroot}%{_unitdir}/nfs-ganesha-lock.service
 install -m 644 scripts/systemd/nfs-ganesha-config.service	%{buildroot}%{_unitdir}/nfs-ganesha-config.service
 install -m 644 scripts/systemd/sysconfig/nfs-ganesha	%{buildroot}%{_fillupdir}/sysconfig.ganesha
-%if 0%{?_tmpfilesdir:1}
-mkdir -p %{buildroot}%{_tmpfilesdir}
-install -m 644 scripts/systemd/tmpfiles.d/ganesha.conf	%{buildroot}%{_tmpfilesdir}
-%endif
 mkdir -p %{buildroot}%{_localstatedir}/log/ganesha
 %else
 mkdir -p %{buildroot}%{_sysconfdir}/init.d
@@ -546,7 +555,6 @@ install -m 644 config_samples/logrotate_fsal_gluster %{buildroot}%{_sysconfdir}/
 %endif
 
 %if %{with gpfs}
-install -m 755 scripts/gpfs-epoch %{buildroot}%{_libexecdir}/ganesha
 install -m 644 config_samples/gpfs.conf	%{buildroot}%{_sysconfdir}/ganesha
 install -m 644 config_samples/gpfs.ganesha.nfsd.conf %{buildroot}%{_sysconfdir}/ganesha
 install -m 644 config_samples/gpfs.ganesha.main.conf %{buildroot}%{_sysconfdir}/ganesha
@@ -560,12 +568,8 @@ install -m 755 scripts/init.d/nfs-ganesha.gpfs		%{buildroot}%{_sysconfdir}/init.
 
 make -C build DESTDIR=%{buildroot} install
 
-find "%{buildroot}%{python3_sitelib}/" -name '*.pyc' \
--exec %__rm {} \;
-%__python -c 'import compileall;
-compileall.compile_dir("%{buildroot}%{python3_sitelib}/",
-ddir="%{python3_sitelib}/",
-force=1)'
+rm -f %{buildroot}/%{python3_sitelib}/gpfs*
+rm -f %{buildroot}/%{python3_sitelib}/__init__.*
 
 %post
 %if ( 0%{?suse_version} )
@@ -642,9 +646,6 @@ exit 0
 %{_unitdir}/nfs-ganesha.service
 %{_unitdir}/nfs-ganesha-lock.service
 %{_unitdir}/nfs-ganesha-config.service
-%if 0%{?_tmpfilesdir:1}
-%{_tmpfilesdir}/ganesha.conf
-%endif
 %else
 %{_sysconfdir}/init.d/nfs-ganesha
 %endif
@@ -660,10 +661,16 @@ exit 0
 %if %{with rados_recov}
 %files rados-grace
 %{_bindir}/ganesha-rados-grace
+%{_libdir}/libganesha_rados_recov.so*
 %if %{with man_page}
 %{_mandir}/*/ganesha-rados-grace.8.gz
 %{_mandir}/*/ganesha-rados-cluster-design.8.gz
 %endif
+%endif
+
+%if %{with rados_urls}
+%files rados-urls
+%{_libdir}/libganesha_rados_urls.so*
 %endif
 
 %if %{with 9P}
@@ -826,6 +833,9 @@ exit 0
 %endif
 
 %changelog
+* Fri Nov 15 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 3.0-1
+- nfs-ganesha 3.0 GA
+
 * Wed Jul 24 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.8.2-1
 - nfs-ganesha 2.8.2 GA
 
