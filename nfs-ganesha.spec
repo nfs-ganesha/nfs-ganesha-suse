@@ -63,7 +63,7 @@ Requires: openSUSE-release
 %global use_fsal_ceph %{on_off_switch ceph}
 
 %ifarch x86_64
-%bcond_without rgw
+%bcond_with rgw
 %else
 %bcond_with rgw
 %endif
