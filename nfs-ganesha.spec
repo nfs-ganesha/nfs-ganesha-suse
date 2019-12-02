@@ -14,12 +14,12 @@
 %endif
 
 %if ( 0%{?suse_version} )
-BuildRequires: distribution-release
+BuildRequires:	distribution-release
 %if ( ! 0%{?is_opensuse} )
-BuildRequires: sles-release >= 12
+BuildRequires:	sles-release >= 12
 Requires: sles-release >= 12
 %else
-BuildRequires: openSUSE-release
+BuildRequires:	openSUSE-release
 Requires: openSUSE-release
 %endif
 
@@ -63,7 +63,7 @@ Requires: openSUSE-release
 %global use_fsal_ceph %{on_off_switch ceph}
 
 %ifarch x86_64
-%bcond_without rgw
+%bcond_with rgw
 %else
 %bcond_with rgw
 %endif
@@ -95,7 +95,7 @@ Requires: openSUSE-release
 %bcond_without system_ntirpc
 %global use_system_ntirpc %{on_off_switch system_ntirpc}
 
-%bcond_without man_page
+%bcond_with man_page
 %global use_man_page %{on_off_switch man_page}
 
 %ifarch x86_64
@@ -123,11 +123,10 @@ Requires: openSUSE-release
 %endif
 
 %global dev_version %{lua: s = string.gsub('@GANESHA_EXTRA_VERSION@', '^%-', ''); s2 = string.gsub(s, '%-', '.'); print(s2) }
-# %%global	dev final
-# %%global	dash_dev_version 2.5-final
+# %%global	dev rc1
 
 Name:		nfs-ganesha
-Version:	2.8.2
+Version:	2.8.3
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		System/Filesystems
@@ -135,7 +134,6 @@ License:	LGPL-3.0+
 Url:		https://github.com/nfs-ganesha/nfs-ganesha/wiki
 
 Source0:	https://github.com/%{name}/%{name}/archive/V%{version}/%{name}-%{version}.tar.gz
-Patch1:		0001-src-scripts-ganeshactl-CMakeLists.txt.patch
 
 BuildRequires:	cmake
 BuildRequires:	bison
@@ -143,8 +141,11 @@ BuildRequires:	flex
 BuildRequires:	pkgconfig
 BuildRequires:	liburcu-devel
 BuildRequires:	krb5-devel
+%if %{with rados_recov} || %{with rados_urls}
+BuildRequires:	librados-devel >= 0.61
+%endif
 %if ( 0%{?suse_version} >= 1330 )
-BuildRequires:  libnsl-devel
+BuildRequires:	libnsl-devel
 %endif
 %if ( 0%{?suse_version} )
 BuildRequires:	dbus-1-devel
@@ -160,7 +161,7 @@ BuildRequires:	libblkid-devel
 BuildRequires:	libuuid-devel
 BuildRequires:	gcc-c++
 %if ( 0%{?with_mspac_support} )
-BuildRequires: libwbclient-devel
+BuildRequires:	libwbclient-devel
 %endif
 %if ( %{with_system_ntirpc} )
 BuildRequires:	libntirpc-devel = 1.8.0
@@ -194,7 +195,7 @@ BuildRequires:	libmooshika-devel >= 0.6-0
 BuildRequires:	jemalloc-devel
 %endif
 %if %{with_systemd}
-BuildRequires: systemd
+BuildRequires:	systemd
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
@@ -202,7 +203,15 @@ Requires(postun): systemd
 BuildRequires:	initscripts
 %endif
 %if %{with man_page}
-BuildRequires: python-Sphinx
+%if ( 0%{?rhel} && 0%{?rhel} < 8 )
+BuildRequires: python-sphinx
+%else
+%if ( 0%{?suse_version} )
+BuildRequires: python3-Sphinx
+%else
+BuildRequires: python3-sphinx
+%endif
+%endif
 %endif
 Requires(post): psmisc
 %if ( 0%{?suse_version} )
@@ -253,20 +262,28 @@ be used with NFS-Ganesha to support PROXY based filesystems
 %package utils
 Summary:	The NFS-GANESHA's util scripts
 Group:		System/Filesystems
-%if ( 0%{?suse_version} )
-BuildRequires:	python3-devel
-Requires:	dbus-1-python, python3-gobject2 python3-pyparsing
-Requires:	gpfs.nfs-ganesha = %{version}-%{release}, python3
-%else
+%if ( 0%{?rhel} && 0%{?rhel} < 8 )
 Requires:	dbus-python, pygobject2, pyparsing
+BuildRequires:	python-devel
+%else
+Requires:	python3-gobject, python3-pyparsing
+BuildRequires:	python3-devel
 %endif
+%if ( 0%{?suse_version} )
+Requires:	dbus-1-python
+%else
+Requires:	python3-dbus
+%endif
+ 
 %if %{with gui_utils}
 %if ( 0%{?suse_version} )
 BuildRequires:	python-qt5-devel
-Requires:	python-qt5
 %else
+%if ( 0%{?fedora} >= 31 || 0%{?rhel} >= 8 )
 BuildRequires:	PyQt5-devel
-Requires:	PyQt5
+%else
+BuildRequires:	PyQt4-devel
+%endif
 %endif
 %endif
 
@@ -296,7 +313,20 @@ Requires:	nfs-ganesha = %{version}-%{release}
 
 %description rados-grace
 This package contains the ganesha-rados-grace tool for interacting with the
-database used by the rados_cluster recovery backend.
+database used by the rados_cluster recovery backend and the
+libganesha_rados_grace shared library for using RADOS storage for
+recovery state.
+%endif
+
+%if %{with rados_urls}
+%package rados-urls
+Summary:	The NFS-GANESHA library for use with RADOS URLs
+Group:		Applications/System
+Requires:	nfs-ganesha = %{version}-%{release}
+
+%description rados-urls
+This package contains the libganesha_rados_urls library used for
+handling RADOS URL configurations.
 %endif
 
 # Option packages start here. use "rpmbuild --with gpfs" (or equivalent)
@@ -384,8 +414,8 @@ to support XFS correctly
 %package lustre
 Summary:	The NFS-GANESHA's LUSTRE FSAL
 Group:		System/Filesystems
-BuildRequires: libattr-devel
-BuildRequires: lustre-client
+BuildRequires:	libattr-devel
+BuildRequires:	lustre-client
 Requires: nfs-ganesha = %{version}-%{release}
 Requires: lustre-client
 
@@ -459,9 +489,8 @@ Development headers and auxiliary files for developing with %{name}.
 %endif
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -q -n %{name}-%{version}%{?dev:-%{dev}}
 rm -rf contrib/libzfswrapper
-%patch1 -p1
 
 %build
 cd src && %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
@@ -527,10 +556,6 @@ install -m 644 scripts/systemd/nfs-ganesha.service.el7	%{buildroot}%{_unitdir}/n
 install -m 644 scripts/systemd/nfs-ganesha-lock.service.el7	%{buildroot}%{_unitdir}/nfs-ganesha-lock.service
 install -m 644 scripts/systemd/nfs-ganesha-config.service	%{buildroot}%{_unitdir}/nfs-ganesha-config.service
 install -m 644 scripts/systemd/sysconfig/nfs-ganesha	%{buildroot}%{_fillupdir}/sysconfig.ganesha
-%if 0%{?_tmpfilesdir:1}
-mkdir -p %{buildroot}%{_tmpfilesdir}
-install -m 644 scripts/systemd/tmpfiles.d/ganesha.conf	%{buildroot}%{_tmpfilesdir}
-%endif
 mkdir -p %{buildroot}%{_localstatedir}/log/ganesha
 %else
 mkdir -p %{buildroot}%{_sysconfdir}/init.d
@@ -562,7 +587,6 @@ install -m 644 config_samples/logrotate_fsal_gluster %{buildroot}%{_sysconfdir}/
 %endif
 
 %if %{with gpfs}
-install -m 755 scripts/gpfs-epoch %{buildroot}%{_libexecdir}/ganesha
 install -m 644 config_samples/gpfs.conf	%{buildroot}%{_sysconfdir}/ganesha
 install -m 644 config_samples/gpfs.ganesha.nfsd.conf %{buildroot}%{_sysconfdir}/ganesha
 install -m 644 config_samples/gpfs.ganesha.main.conf %{buildroot}%{_sysconfdir}/ganesha
@@ -576,12 +600,13 @@ install -m 755 scripts/init.d/nfs-ganesha.gpfs		%{buildroot}%{_sysconfdir}/init.
 
 make -C build DESTDIR=%{buildroot} install
 
-find "%{buildroot}%{python3_sitelib}/" -name '*.pyc' \
--exec %__rm {} \;
-%__python -c 'import compileall;
-compileall.compile_dir("%{buildroot}%{python3_sitelib}/",
-ddir="%{python3_sitelib}/",
-force=1)'
+%if ( 0%{?rhel} && 0%{?rhel} < 8 )
+rm -f %{buildroot}/%{python_sitelib}/gpfs*
+rm -f %{buildroot}/%{python_sitelib}/__init__.*
+%else
+rm -f %{buildroot}/%{python3_sitelib}/gpfs*
+rm -f %{buildroot}/%{python3_sitelib}/__init__.*
+%endif
 
 %post
 %if ( 0%{?suse_version} )
@@ -658,9 +683,6 @@ exit 0
 %{_unitdir}/nfs-ganesha.service
 %{_unitdir}/nfs-ganesha-lock.service
 %{_unitdir}/nfs-ganesha-config.service
-%if 0%{?_tmpfilesdir:1}
-%{_tmpfilesdir}/ganesha.conf
-%endif
 %else
 %{_sysconfdir}/init.d/nfs-ganesha
 %endif
@@ -676,10 +698,16 @@ exit 0
 %if %{with rados_recov}
 %files rados-grace
 %{_bindir}/ganesha-rados-grace
+%{_libdir}/libganesha_rados_recov.so*
 %if %{with man_page}
 %{_mandir}/*/ganesha-rados-grace.8.gz
 %{_mandir}/*/ganesha-rados-cluster-design.8.gz
 %endif
+%endif
+
+%if %{with rados_urls}
+%files rados-urls
+%{_libdir}/libganesha_rados_urls.so*
 %endif
 
 %if %{with 9P}
@@ -842,6 +870,9 @@ exit 0
 %endif
 
 %changelog
+* Mon Dec 2 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.8.3-1
+- nfs-ganesha 2.8.3 GA
+
 * Wed Jul 24 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 2.8.2-1
 - nfs-ganesha 2.8.2 GA
 
