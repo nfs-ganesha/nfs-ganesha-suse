@@ -1,6 +1,6 @@
 
 Name:		libntirpc
-Version:	3.0
+Version:	3.2
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	New Transport Independent RPC Library
 Group:		System/Libraries
@@ -24,14 +24,14 @@ the following features not found in libtirpc:
  5. Event channels (remove static arrays of xprt handles, new EPOLL/KEVENT
     integration)
 
-%package -n libntirpc3_0
+%package -n libntirpc3
 Summary:	New Transport Independent RPC Library
 Group:		System/Libraries
 # libtirpc has /etc/netconfig, most machines probably have it anyway
 # for NFS client
 Requires:	libtirpc3
 
-%description -n libntirpc3_0
+%description -n libntirpc3
 This package contains a new implementation of the original libtirpc, 
 transport-independent RPC (TI-RPC) library for NFS-Ganesha. It has
 the following features not found in libtirpc:
@@ -46,7 +46,7 @@ the following features not found in libtirpc:
 
 %package devel
 Summary:	Development headers for %{name}
-Requires:	%{name}3_0%{?_isa} = %{version}
+Requires:	%{name}3%{?_isa} = 3
 Group:		Development/Libraries/C and C++
 
 %description devel
@@ -74,11 +74,11 @@ install -p -m 644 build/libntirpc.pc %{buildroot}%{_libdir}/pkgconfig/
 mkdir -p %{buildroot}%{_defaultlicensedir}/%{name}
 install -c -m 0644 COPYING %{buildroot}%{_defaultlicensedir}/%{name}/
 
-%post -n libntirpc3_0 -p /sbin/ldconfig
+%post -n libntirpc3 -p /sbin/ldconfig
 
-%postun -n libntirpc3_0 -p /sbin/ldconfig
+%postun -n libntirpc3 -p /sbin/ldconfig
 
-%files -n libntirpc3_0
+%files -n libntirpc3
 %{_libdir}/libntirpc.so.*
 %doc NEWS README
 %dir %{_defaultlicensedir}
@@ -90,6 +90,12 @@ install -c -m 0644 COPYING %{buildroot}%{_defaultlicensedir}/%{name}/
 %{_libdir}/pkgconfig/libntirpc.pc
 
 %changelog
+* Tue Dec 17 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 3.2-1
+- libntirpc 3.2 GA
+
+* Fri Dec 13 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 3.1-1
+- libntirpc 3.1 GA (not built)
+
 * Fri Nov 15 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 3.0-1
 - libntirpc 3.0 GA
 
