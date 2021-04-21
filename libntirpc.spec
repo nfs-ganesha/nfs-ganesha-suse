@@ -1,6 +1,6 @@
 
 Name:		libntirpc
-Version:	3.3
+Version:	3.4
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	New Transport Independent RPC Library
 Group:		System/Libraries
@@ -93,6 +93,9 @@ install -c -m 0644 COPYING %{buildroot}%{_defaultlicensedir}/%{name}/
 %{_libdir}/pkgconfig/libntirpc.pc
 
 %changelog
+* Thu Dec 24 2020 Kaleb S. KEITHLEY <kkeithle at redhat.com> 3.4-1
+- libntirpc 3.4 GA
+
 * Thu Jun 11 2020 Kaleb S. KEITHLEY <kkeithle at redhat.com> 3.3-1
 - libntirpc 3.3 GA
 
