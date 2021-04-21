@@ -1,18 +1,6 @@
 
 %global _hardened_build 1
 
-%if 0%{?fedora} >= 15 || 0%{?rhel} >= 7
-%global with_nfsidmap 1
-%else
-%global with_nfsidmap 0
-%endif
-
-%if ( 0%{?fedora} >= 18 || 0%{?rhel} >= 7 )
-%global with_systemd 1
-%else
-%global with_systemd 0
-%endif
-
 %if ( 0%{?suse_version} )
 BuildRequires: distribution-release
 %if ( ! 0%{?is_opensuse} )
@@ -22,9 +10,6 @@ Requires: sles-release >= 12
 BuildRequires: openSUSE-release
 Requires: openSUSE-release
 %endif
-
-%global with_systemd 1
-%global with_nfsidmap 1
 %endif
 
 # Conditionally enable some FSALs, disable others.
@@ -127,7 +112,7 @@ Requires: openSUSE-release
 # %%global	dash_dev_version 2.5-final
 
 Name:		nfs-ganesha
-Version:	3.0
+Version:	3.3
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		System/Filesystems
@@ -164,7 +149,7 @@ BuildRequires:	gcc-c++
 BuildRequires: libwbclient-devel
 %endif
 %if ( %{with_system_ntirpc} )
-BuildRequires:	libntirpc-devel = 3.0
+BuildRequires:	libntirpc-devel >= 3.2
 %endif
 %if ( 0%{?fedora} )
 # this should effectively be a no-op, as all Fedora installs should have it
@@ -179,14 +164,10 @@ Requires:	rpcbind
 Requires:	portmap
 %endif
 %endif
-%if %{with_nfsidmap}
 %if ( 0%{?suse_version} )
 BuildRequires:	nfsidmap-devel
 %else
 BuildRequires:	libnfsidmap-devel
-%endif
-%else
-BuildRequires:	nfs-utils-lib-devel
 %endif
 %if %{with rdma}
 BuildRequires:	libmooshika-devel >= 0.6-0
@@ -194,14 +175,10 @@ BuildRequires:	libmooshika-devel >= 0.6-0
 %if %{with jemalloc}
 BuildRequires:	jemalloc-devel
 %endif
-%if %{with_systemd}
 BuildRequires: systemd
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
-%else
-BuildRequires:	initscripts
-%endif
 %if %{with man_page}
 BuildRequires: python-Sphinx
 %endif
@@ -536,18 +513,13 @@ install -m 644 config_samples/vfs.conf %{buildroot}%{_sysconfdir}/ganesha
 install -m 644 config_samples/rgw.conf %{buildroot}%{_sysconfdir}/ganesha
 %endif
 
-%if %{with_systemd}
-mkdir -p %{buildroot}%{_unitdir}
+mkdir -p %{buildroot}%{_unitdir}/nfs-ganesha.d
 install -m 644 scripts/systemd/nfs-ganesha.service.el7	%{buildroot}%{_unitdir}/nfs-ganesha.service
-install -m 644 scripts/systemd/nfs-ganesha-lock.service.el7	%{buildroot}%{_unitdir}/nfs-ganesha-lock.service
+install -m 644 scripts/systemd/nfs-ganesha-lock.service.el8	%{buildroot}%{_unitdir}/nfs-ganesha-lock.service
+install -m 644 scripts/systemd/rpc-statd.conf.el8      %{buildroot}%{_sysconfdir}/systemd/system/nfs-ganesha.d/rpc-statd.conf
 install -m 644 scripts/systemd/nfs-ganesha-config.service	%{buildroot}%{_unitdir}/nfs-ganesha-config.service
 install -m 644 scripts/systemd/sysconfig/nfs-ganesha	%{buildroot}%{_fillupdir}/sysconfig.ganesha
 mkdir -p %{buildroot}%{_localstatedir}/log/ganesha
-%else
-mkdir -p %{buildroot}%{_sysconfdir}/init.d
-install -m 755 scripts/init.d/nfs-ganesha.el6		%{buildroot}%{_sysconfdir}/init.d/nfs-ganesha
-install -m 644 scripts/init.d/sysconfig/ganesha		%{buildroot}%{_sysconfdir}/sysconfig/ganesha
-%endif
 
 %if %{with lustre}
 install -m 644 config_samples/lustre.conf %{buildroot}%{_sysconfdir}/ganesha
@@ -578,10 +550,6 @@ install -m 644 config_samples/gpfs.ganesha.nfsd.conf %{buildroot}%{_sysconfdir}/
 install -m 644 config_samples/gpfs.ganesha.main.conf %{buildroot}%{_sysconfdir}/ganesha
 install -m 644 config_samples/gpfs.ganesha.log.conf %{buildroot}%{_sysconfdir}/ganesha
 install -m 644 config_samples/gpfs.ganesha.exports.conf	%{buildroot}%{_sysconfdir}/ganesha
-%if ! %{with_systemd}
-mkdir -p %{buildroot}%{_sysconfdir}/init.d
-install -m 755 scripts/init.d/nfs-ganesha.gpfs		%{buildroot}%{_sysconfdir}/init.d/nfs-ganesha-gpfs
-%endif
 %endif
 
 make -C build DESTDIR=%{buildroot} install
@@ -601,11 +569,9 @@ semanage fcontext -a -t ganesha_var_log_t %{_localstatedir}/log/ganesha/ganesha-
 %endif
 restorecon %{_localstatedir}/log/ganesha
 %endif
-%if %{with_systemd}
 %systemd_post nfs-ganesha.service
 %systemd_post nfs-ganesha-lock.service
 %systemd_post nfs-ganesha-config.service
-%endif
 %endif
 killall -SIGHUP dbus-daemon >/dev/null 2>&1 || :
 
@@ -623,9 +589,7 @@ exit 0
 %service_del_preun nfs-ganesha-lock.service
 %service_del_preun nfs-ganesha.service
 %else
-%if %{with_systemd}
 %systemd_preun nfs-ganesha-lock.service
-%endif
 %endif
 
 %postun
@@ -635,9 +599,8 @@ exit 0
 %service_del_postun nfs-ganesha.service
 %debug_package
 %else
-%if %{with_systemd}
 %systemd_postun_with_restart nfs-ganesha-lock.service
-%endif
+%{_sysconfdir}/systemd/system/nfs-ganesha.d/rpc-statd.conf
 %endif
 
 %files
@@ -660,13 +623,9 @@ exit 0
 %{_libexecdir}/ganesha/nfs-ganesha-config.sh
 %dir %attr(0775,ganesha,ganesha) %{_localstatedir}/log/ganesha
 
-%if %{with_systemd}
 %{_unitdir}/nfs-ganesha.service
 %{_unitdir}/nfs-ganesha-lock.service
 %{_unitdir}/nfs-ganesha-config.service
-%else
-%{_sysconfdir}/init.d/nfs-ganesha
-%endif
 
 %if %{with man_page}
 %{_mandir}/*/ganesha-config.8.gz
@@ -742,9 +701,6 @@ exit 0
 %config(noreplace) %{_sysconfdir}/ganesha/gpfs.ganesha.log.conf
 %config(noreplace) %{_sysconfdir}/ganesha/gpfs.ganesha.exports.conf
 %{_libexecdir}/ganesha/gpfs-epoch
-%if ! %{with_systemd}
-%{_sysconfdir}/init.d/nfs-ganesha-gpfs
-%endif
 %if %{with man_page}
 %{_mandir}/*/ganesha-gpfs-config.8.gz
 %endif
@@ -851,6 +807,9 @@ exit 0
 %endif
 
 %changelog
+* Thu Jun 11 2020 Kaleb S. KEITHLEY <kkeithle at redhat.com> 3.3-1
+- nfs-ganesha 3.3 GA
+
 * Fri Nov 15 2019 Kaleb S. KEITHLEY <kkeithle at redhat.com> 3.0-1
 - nfs-ganesha 3.0 GA
 
