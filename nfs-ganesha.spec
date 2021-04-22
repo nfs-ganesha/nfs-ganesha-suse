@@ -40,18 +40,18 @@ Requires: openSUSE-release
 %bcond_with lustre
 %global use_fsal_lustre %{on_off_switch lustre}
 
-%ifarch x86_64
-%bcond_without ceph
-%else
+# %%ifarch x86_64
+# %%bcond_without ceph
+# %%else
 %bcond_with ceph
-%endif
+# %%endif
 %global use_fsal_ceph %{on_off_switch ceph}
 
-%ifarch x86_64
+# %%ifarch x86_64
+# %%bcond_with rgw
+# %%else
 %bcond_with rgw
-%else
-%bcond_with rgw
-%endif
+# %%endif
 %global use_fsal_rgw %{on_off_switch rgw}
 
 %bcond_without gluster
@@ -83,18 +83,18 @@ Requires: openSUSE-release
 %bcond_without man_page
 %global use_man_page %{on_off_switch man_page}
 
-%ifarch x86_64
-%bcond_without rados_recov
-%else
+# %%ifarch x86_64
+# %%bcond_without rados_recov
+# %%else
 %bcond_with rados_recov
-%endif
+# %%endif
 %global use_rados_recov %{on_off_switch rados_recov}
  
-%ifarch x86_64
-%bcond_without rados_urls
-%else
+# %%ifarch x86_64
+# %%bcond_without rados_urls
+# %%else
 %bcond_with rados_urls
-%endif
+# %%endif
 %global use_rados_urls %{on_off_switch rados_urls}
 
 %bcond_without rpcbind
@@ -180,7 +180,7 @@ Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
 %if %{with man_page}
-BuildRequires: python38-Sphinx
+BuildRequires: python-Sphinx
 %endif
 Requires(post): psmisc
 Requires(pre): /usr/sbin/useradd
@@ -616,7 +616,7 @@ exit 0
 %config(noreplace) %{_sysconfdir}/logrotate.d/ganesha
 %dir %{_sysconfdir}/ganesha/
 %config(noreplace) %{_sysconfdir}/ganesha/ganesha.conf
-# %%dir %%{_defaultdocdir}/ganesha/
+# %%dir %{_defaultdocdir}/ganesha/
 # %%{_defaultdocdir}/ganesha/*
 %doc src/ChangeLog
 %ghost %dir %{_rundir}/ganesha
@@ -704,7 +704,7 @@ exit 0
 %config(noreplace) %{_sysconfdir}/ganesha/gpfs.ganesha.main.conf
 %config(noreplace) %{_sysconfdir}/ganesha/gpfs.ganesha.log.conf
 %config(noreplace) %{_sysconfdir}/ganesha/gpfs.ganesha.exports.conf
-%{_libdir}/ganesha/gpfs-epoch
+%{_libexecdir}/ganesha/gpfs-epoch
 %if %{with man_page}
 %{_mandir}/*/ganesha-gpfs-config.8.gz
 %endif
