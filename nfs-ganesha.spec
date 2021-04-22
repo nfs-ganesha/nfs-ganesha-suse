@@ -40,18 +40,18 @@ Requires: openSUSE-release
 %bcond_with lustre
 %global use_fsal_lustre %{on_off_switch lustre}
 
-%ifarch x86_64
-%bcond_without ceph
-%else
+# %%ifarch x86_64
+# %%bcond_without ceph
+# %%else
 %bcond_with ceph
-%endif
+# %%endif
 %global use_fsal_ceph %{on_off_switch ceph}
 
-%ifarch x86_64
+# %%ifarch x86_64
+# %%bcond_with rgw
+# %%else
 %bcond_with rgw
-%else
-%bcond_with rgw
-%endif
+# %%endif
 %global use_fsal_rgw %{on_off_switch rgw}
 
 %bcond_without gluster
@@ -83,18 +83,18 @@ Requires: openSUSE-release
 %bcond_without man_page
 %global use_man_page %{on_off_switch man_page}
 
-%ifarch x86_64
-%bcond_without rados_recov
-%else
+# %%ifarch x86_64
+# %%bcond_without rados_recov
+# %%else
 %bcond_with rados_recov
-%endif
+# %%endif
 %global use_rados_recov %{on_off_switch rados_recov}
  
-%ifarch x86_64
-%bcond_without rados_urls
-%else
+# %%ifarch x86_64
+# %%bcond_without rados_urls
+# %%else
 %bcond_with rados_urls
-%endif
+# %%endif
 %global use_rados_urls %{on_off_switch rados_urls}
 
 %bcond_without rpcbind
@@ -112,7 +112,7 @@ Requires: openSUSE-release
 # %%global	dash_dev_version 2.5-final
 
 Name:		nfs-ganesha
-Version:	3.3
+Version:	3.5
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		System/Filesystems
@@ -183,11 +183,8 @@ Requires(postun): systemd
 BuildRequires: python-Sphinx
 %endif
 Requires(post): psmisc
-%if ( 0%{?suse_version} )
-Requires(pre): shadow
-%else
-Requires(pre): shadow-utils
-%endif
+Requires(pre): /usr/sbin/useradd
+Requires(pre): /usr/sbin/groupadd
 
 # Use CMake variables
 
@@ -337,6 +334,7 @@ Summary:	The NFS-GANESHA's CephFS FSAL
 Group:		System/Filesystems
 Requires:	nfs-ganesha = %{version}-%{release}
 BuildRequires:	libcephfs-devel >= 14.2.1
+BuildRequires:	libacl-devel
 
 %description ceph
 This package contains a FSAL shared object to
@@ -403,7 +401,10 @@ be used with NFS-Ganesha to support PANFS
 Summary:	The NFS-GANESHA's GLUSTER FSAL
 Group:		System/Filesystems
 Requires:	nfs-ganesha = %{version}-%{release}
-BuildRequires:	glusterfs-devel >= 6.0
+BuildRequires:	libgfapi-devel >= 8.0
+BuildRequires:	libglusterfs-devel >= 8.0
+BuildRequires:	libgfrpc-devel >= 8.0
+BuildRequires:	libgfxdr-devel >= 8.0
 BuildRequires:	libattr-devel, libacl-devel
 
 %description gluster
@@ -513,10 +514,11 @@ install -m 644 config_samples/vfs.conf %{buildroot}%{_sysconfdir}/ganesha
 install -m 644 config_samples/rgw.conf %{buildroot}%{_sysconfdir}/ganesha
 %endif
 
-mkdir -p %{buildroot}%{_unitdir}/nfs-ganesha.d
+mkdir -p %{buildroot}%{_unitdir}
+mkdir -p %{buildroot}%{_sysconfdir}/systemd/system/nfs-ganesha-lock.service.d
 install -m 644 scripts/systemd/nfs-ganesha.service.el7	%{buildroot}%{_unitdir}/nfs-ganesha.service
 install -m 644 scripts/systemd/nfs-ganesha-lock.service.el8	%{buildroot}%{_unitdir}/nfs-ganesha-lock.service
-install -m 644 scripts/systemd/rpc-statd.conf.el8      %{buildroot}%{_sysconfdir}/systemd/system/nfs-ganesha.d/rpc-statd.conf
+install -m 644 scripts/systemd/rpc-statd.conf.el8      %{buildroot}%{_sysconfdir}/systemd/system/nfs-ganesha-lock.service.d/rpc-statd.conf
 install -m 644 scripts/systemd/nfs-ganesha-config.service	%{buildroot}%{_unitdir}/nfs-ganesha-config.service
 install -m 644 scripts/systemd/sysconfig/nfs-ganesha	%{buildroot}%{_fillupdir}/sysconfig.ganesha
 mkdir -p %{buildroot}%{_localstatedir}/log/ganesha
@@ -600,7 +602,7 @@ exit 0
 %debug_package
 %else
 %systemd_postun_with_restart nfs-ganesha-lock.service
-%{_sysconfdir}/systemd/system/nfs-ganesha.d/rpc-statd.conf
+%{_sysconfdir}/systemd/system/nfs-ganesha-lock.service.d/rpc-statd.conf
 %endif
 
 %files
@@ -614,8 +616,8 @@ exit 0
 %config(noreplace) %{_sysconfdir}/logrotate.d/ganesha
 %dir %{_sysconfdir}/ganesha/
 %config(noreplace) %{_sysconfdir}/ganesha/ganesha.conf
-%dir %{_defaultdocdir}/ganesha/
-%{_defaultdocdir}/ganesha/*
+# %%dir %{_defaultdocdir}/ganesha/
+# %%{_defaultdocdir}/ganesha/*
 %doc src/ChangeLog
 %ghost %dir %{_rundir}/ganesha
 %dir %{_libexecdir}/ganesha/
@@ -626,6 +628,8 @@ exit 0
 %{_unitdir}/nfs-ganesha.service
 %{_unitdir}/nfs-ganesha-lock.service
 %{_unitdir}/nfs-ganesha-config.service
+%dir %{_sysconfdir}/systemd/system/nfs-ganesha-lock.service.d
+%{_sysconfdir}/systemd/system/nfs-ganesha-lock.service.d/rpc-statd.conf
 
 %if %{with man_page}
 %{_mandir}/*/ganesha-config.8.gz
@@ -807,6 +811,9 @@ exit 0
 %endif
 
 %changelog
+* Thu Jan 28 2021 Kaleb S. KEITHLEY <kkeithle at redhat.com> 3.5-1
+- nfs-ganesha 3.5 GA
+
 * Thu Jun 11 2020 Kaleb S. KEITHLEY <kkeithle at redhat.com> 3.3-1
 - nfs-ganesha 3.3 GA
 
