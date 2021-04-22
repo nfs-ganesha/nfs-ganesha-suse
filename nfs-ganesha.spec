@@ -40,18 +40,18 @@ Requires: openSUSE-release
 %bcond_with lustre
 %global use_fsal_lustre %{on_off_switch lustre}
 
-# %%ifarch x86_64
-# %%bcond_without ceph
-# %%else
+%ifarch x86_64
+%bcond_without ceph
+%else
 %bcond_with ceph
-# %%endif
+%endif
 %global use_fsal_ceph %{on_off_switch ceph}
 
-# %%ifarch x86_64
-# %%bcond_with rgw
-# %%else
+%ifarch x86_64
 %bcond_with rgw
-# %%endif
+%else
+%bcond_with rgw
+%endif
 %global use_fsal_rgw %{on_off_switch rgw}
 
 %bcond_without gluster
@@ -83,18 +83,18 @@ Requires: openSUSE-release
 %bcond_without man_page
 %global use_man_page %{on_off_switch man_page}
 
-# %%ifarch x86_64
-# %%bcond_without rados_recov
-# %%else
+%ifarch x86_64
+%bcond_without rados_recov
+%else
 %bcond_with rados_recov
-# %%endif
+%endif
 %global use_rados_recov %{on_off_switch rados_recov}
  
-# %%ifarch x86_64
-# %%bcond_without rados_urls
-# %%else
+%ifarch x86_64
+%bcond_without rados_urls
+%else
 %bcond_with rados_urls
-# %%endif
+%endif
 %global use_rados_urls %{on_off_switch rados_urls}
 
 %bcond_without rpcbind
