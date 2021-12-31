@@ -1,6 +1,6 @@
 
 Name:		libntirpc
-Version:	3.4
+Version:	4.0
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	New Transport Independent RPC Library
 Group:		System/Libraries
@@ -26,15 +26,16 @@ the following features not found in libtirpc:
  5. Event channels (remove static arrays of xprt handles, new EPOLL/KEVENT
     integration)
 
-%package -n libntirpc3
+%package -n libntirpc4
 Summary:	New Transport Independent RPC Library
 Group:		System/Libraries
 # libtirpc has /etc/netconfig, most machines probably have it anyway
 # for NFS client
 Requires:	libtirpc3
 Obsoletes:	libntirpc1_8
+Obsoletes:	libntirpc3
 
-%description -n libntirpc3
+%description -n libntirpc4
 This package contains a new implementation of the original libtirpc, 
 transport-independent RPC (TI-RPC) library for NFS-Ganesha. It has
 the following features not found in libtirpc:
@@ -49,7 +50,7 @@ the following features not found in libtirpc:
 
 %package devel
 Summary:	Development headers for %{name}
-Requires:	%{name}3%{?_isa} = %{version}
+Requires:	%{name}4%{?_isa} = %{version}
 Group:		Development/Libraries/C and C++
 
 %description devel
@@ -59,29 +60,28 @@ Development headers and auxiliary files for developing with %{name}.
 %setup -q -n ntirpc-%{version}
 
 %build
-%cmake -DOVERRIDE_INSTALL_PREFIX=/usr -DTIRPC_EPOLL=1 -DUSE_GSS=ON "-GUnix Makefiles"
+export GCC_COLORS=
+%cmake . \
+    -DOVERRIDE_INSTALL_PREFIX=/usr \
+    -DCMAKE_COLOR_MAKEFILE:BOOL=OFF \
+    -DTIRPC_EPOLL=1 \
+    -DUSE_GSS=ON \
+    "-GUnix Makefiles"
 
-make %{?_smp_mflags}
+%cmake_build
 
 %install
-## make install is broken in various ways
-## make install DESTDIR=%%{buildroot}
 mkdir -p %{buildroot}%{_libdir}/pkgconfig
-install -p -m 0755 build/src/%{name}.so.%{version} %{buildroot}%{_libdir}/
-ln -s %{name}.so.%{version} %{buildroot}%{_libdir}/%{name}.so.3
-ln -s %{name}.so.%{version} %{buildroot}%{_libdir}/%{name}.so
-mkdir -p %{buildroot}%{_includedir}/ntirpc
-cp -a ntirpc %{buildroot}%{_includedir}/
-install -p -m 644 build/ntirpc/version.h %{buildroot}%{_includedir}/ntirpc
-install -p -m 644 build/libntirpc.pc %{buildroot}%{_libdir}/pkgconfig/
+%cmake_install
+ln -s %{name}.so.%{version} %{buildroot}%{_libdir}/%{name}.so.4
 mkdir -p %{buildroot}%{_defaultlicensedir}/%{name}
 install -c -m 0644 COPYING %{buildroot}%{_defaultlicensedir}/%{name}/
 
-%post -n libntirpc3 -p /sbin/ldconfig
+%post -n libntirpc4 -p /sbin/ldconfig
 
-%postun -n libntirpc3 -p /sbin/ldconfig
+%postun -n libntirpc4 -p /sbin/ldconfig
 
-%files -n libntirpc3
+%files -n libntirpc4
 %{_libdir}/libntirpc.so.*
 %doc NEWS README
 %dir %{_defaultlicensedir}
@@ -93,6 +93,9 @@ install -c -m 0644 COPYING %{buildroot}%{_defaultlicensedir}/%{name}/
 %{_libdir}/pkgconfig/libntirpc.pc
 
 %changelog
+* Fri Dec 31 2021 Kaleb S. KEITHLEY <kkeithle at redhat.com> 4.0-1
+- libntirpc 4.0 GA
+
 * Thu Dec 24 2020 Kaleb S. KEITHLEY <kkeithle at redhat.com> 3.4-1
 - libntirpc 3.4 GA
 
