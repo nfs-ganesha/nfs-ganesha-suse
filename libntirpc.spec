@@ -84,7 +84,6 @@ install -c -m 0644 COPYING %{buildroot}%{_defaultlicensedir}/%{name}/
 %files -n libntirpc4
 %{_libdir}/libntirpc.so.*
 %doc NEWS README
-%dir %{_defaultlicensedir}
 %{_defaultlicensedir}/*
 
 %files devel
