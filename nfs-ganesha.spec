@@ -57,8 +57,8 @@ Requires: openSUSE-release
 %bcond_without gluster
 %global use_fsal_gluster %{on_off_switch gluster}
 
-%bcond_with panfs
-%global use_fsal_panfs %{on_off_switch panfs}
+%bcond_with kvsfs
+%global use_fsal_kvsfs %{on_off_switch kvsfs}
 
 %bcond_with rdma
 %global use_rdma %{on_off_switch rdma}
@@ -112,7 +112,7 @@ Requires: openSUSE-release
 # %%global	dash_dev_version 2.5-final
 
 Name:		nfs-ganesha
-Version:	3.5
+Version:	4.0
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		System/Filesystems
@@ -120,8 +120,7 @@ License:	LGPL-3.0+
 Url:		https://github.com/nfs-ganesha/nfs-ganesha/wiki
 
 Source0:	https://github.com/%{name}/%{name}/archive/V%{version}/%{name}-%{version}.tar.gz
-Patch1:		0001-src-scripts-ganeshactl-CMakeLists.txt.patch
-Patch2:		0002-src-CMakeLists.text.patch
+Patch2:		0002-CMakeLists.txt.patch
 
 BuildRequires:	cmake
 BuildRequires:	bison
@@ -149,7 +148,7 @@ BuildRequires:	gcc-c++
 BuildRequires: libwbclient-devel
 %endif
 %if ( %{with_system_ntirpc} )
-BuildRequires:	libntirpc-devel >= 3.2
+BuildRequires:	libntirpc-devel >= 4.0
 %endif
 %if ( 0%{?fedora} )
 # this should effectively be a no-op, as all Fedora installs should have it
@@ -214,15 +213,15 @@ Requires:	nfs-ganesha = %{version}-%{release}
 This package contains a FSAL shared object to
 be used with NFS-Ganesha to support VFS based filesystems
 
-%package proxy
-Summary:	The NFS-GANESHA's PROXY FSAL
+%package proxy-v4
+Summary:	The NFS-GANESHA's PROXY_V4 FSAL
 Group:		System/Filesystems
 BuildRequires:	libattr-devel
 Requires:	nfs-ganesha = %{version}-%{release}
 
-%description proxy
+%description proxy-v4
 This package contains a FSAL shared object to
-be used with NFS-Ganesha to support PROXY based filesystems
+be used with NFS-Ganesha to support PROXY_V4 based filesystems
 
 %if %{with utils}
 %package utils
@@ -383,16 +382,16 @@ This package contains a FSAL shared object to
 be used with NFS-Ganesha to support LUSTRE based filesystems
 %endif
 
-# PANFS
-%if %{with panfs}
-%package panfs
-Summary:	The NFS-GANESHA's PANFS FSAL
+# KVSFS
+%if %{with kvsfs}
+%package kvsfs
+Summary:	The NFS-GANESHA's KVSFS FSAL
 Group:		System/Filesystems
 Requires:	nfs-ganesha = %{version}-%{release}
 
-%description panfs
+%description kvsfs
 This package contains a FSAL shared object to
-be used with NFS-Ganesha to support PANFS
+be used with NFS-Ganesha to support KVSFS
 %endif
 
 # GLUSTER
@@ -401,10 +400,10 @@ be used with NFS-Ganesha to support PANFS
 Summary:	The NFS-GANESHA's GLUSTER FSAL
 Group:		System/Filesystems
 Requires:	nfs-ganesha = %{version}-%{release}
-BuildRequires:	libgfapi-devel >= 8.0
-BuildRequires:	libglusterfs-devel >= 8.0
-BuildRequires:	libgfrpc-devel >= 8.0
-BuildRequires:	libgfxdr-devel >= 8.0
+BuildRequires:	libgfapi-devel >= 9.0
+BuildRequires:	libglusterfs-devel >= 9.0
+BuildRequires:	libgfrpc-devel >= 9.0
+BuildRequires:	libgfxdr-devel >= 9.0
 BuildRequires:	libattr-devel, libacl-devel
 
 %description gluster
@@ -451,12 +450,12 @@ Development headers and auxiliary files for developing with %{name}.
 %endif
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -q
 rm -rf contrib/libzfswrapper
-%patch1 -p1
 %patch2 -p1
 
 %build
+export VERBOSE=1
 cd src && %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
 	-DBUILD_CONFIG=rpmbuild				\
 	-DDSANITIZE_ADDRESS=OFF				\
@@ -467,7 +466,7 @@ cd src && %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
 	-DUSE_FSAL_CEPH=%{use_fsal_ceph}		\
 	-DUSE_FSAL_RGW=%{use_fsal_rgw}			\
 	-DUSE_FSAL_GPFS=%{use_fsal_gpfs}		\
-	-DUSE_FSAL_PANFS=%{use_fsal_panfs}		\
+	-DUSE_FSAL_KVSFS=%{use_fsal_kvsfs}		\
 	-DUSE_FSAL_GLUSTER=%{use_fsal_gluster}		\
 	-DUSE_SYSTEM_NTIRPC=%{use_system_ntirpc}	\
 	-DUSE_9P_RDMA=%{use_rdma}			\
@@ -477,7 +476,8 @@ cd src && %cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo	\
 	-DUSE_RADOS_RECOV=%{use_rados_recov}		\
 	-DRADOS_URLS=%{use_rados_urls}			\
 	-DUSE_FSAL_VFS=ON				\
-	-DUSE_FSAL_PROXY=ON				\
+	-DUSE_FSAL_PROXY_V4=ON				\
+	-DUSE_FSAL_PROXY_V3=OFF			\
 	-DUSE_DBUS=ON					\
 	-DUSE_9P=%{use_9P}				\
 	-DDISTNAME_HAS_GIT_DATA=OFF			\
@@ -669,10 +669,10 @@ exit 0
 %{_mandir}/*/ganesha-vfs-config.8.gz
 %endif
 
-%files proxy
-%{_libdir}/ganesha/libfsalproxy*
+%files proxy-v4
+%{_libdir}/ganesha/libfsalproxy_v4*
 %if %{with man_page}
-%{_mandir}/*/ganesha-proxy-config.8.gz
+%{_mandir}/*/ganesha-proxy-v4-config.8.gz
 %endif
 
 # Optional packages
@@ -704,7 +704,9 @@ exit 0
 %config(noreplace) %{_sysconfdir}/ganesha/gpfs.ganesha.main.conf
 %config(noreplace) %{_sysconfdir}/ganesha/gpfs.ganesha.log.conf
 %config(noreplace) %{_sysconfdir}/ganesha/gpfs.ganesha.exports.conf
+%if %{with utils}
 %{_libexecdir}/ganesha/gpfs-epoch
+%endif
 %if %{with man_page}
 %{_mandir}/*/ganesha-gpfs-config.8.gz
 %endif
@@ -754,7 +756,7 @@ exit 0
 %files -n libntirpc
 %defattr(-,root,root,-)
 %{_libdir}/libntirpc.so.@NTIRPC_VERSION_EMBED@
-%{_libdir}/libntirpc.so.1.6
+%{_libdir}/libntirpc.so.4.0
 %{_libdir}/libntirpc.so
 %{!?_licensedir:%global license %%doc}
 %license libntirpc/COPYING
@@ -765,9 +767,9 @@ exit 0
 %{_includedir}/ntirpc/*
 %endif
 
-%if %{with panfs}
-%files panfs
-%{_libdir}/ganesha/libfsalpanfs*
+%if %{with kvsfs}
+%files kvsfs
+%{_libdir}/ganesha/libfsalkvsfs*
 %endif
 
 %if %{with lttng}
@@ -811,6 +813,9 @@ exit 0
 %endif
 
 %changelog
+* Fri Dec 31 2021 Kaleb S. KEITHLEY <kkeithle at redhat.com> 4.0-1
+- nfs-ganesha 4.0 GA
+
 * Thu Jan 28 2021 Kaleb S. KEITHLEY <kkeithle at redhat.com> 3.5-1
 - nfs-ganesha 3.5 GA
 
