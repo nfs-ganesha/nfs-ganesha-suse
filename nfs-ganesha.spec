@@ -74,7 +74,7 @@ Requires: openSUSE-release
 %bcond_without utils
 %global use_utils %{on_off_switch utils}
 
-%bcond_without gui_utils
+%bcond_with gui_utils
 %global use_gui_utils %{on_off_switch gui_utils}
 
 %bcond_without system_ntirpc
@@ -704,9 +704,7 @@ exit 0
 %config(noreplace) %{_sysconfdir}/ganesha/gpfs.ganesha.main.conf
 %config(noreplace) %{_sysconfdir}/ganesha/gpfs.ganesha.log.conf
 %config(noreplace) %{_sysconfdir}/ganesha/gpfs.ganesha.exports.conf
-%if %{with utils}
 /usr/lib/ganesha/gpfs-epoch
-%endif
 %if %{with man_page}
 %{_mandir}/*/ganesha-gpfs-config.8.gz
 %endif
