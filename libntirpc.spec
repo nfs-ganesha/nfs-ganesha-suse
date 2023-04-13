@@ -1,6 +1,6 @@
 
 Name:		libntirpc
-Version:	4.0
+Version:	4.3
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	New Transport Independent RPC Library
 Group:		System/Libraries
@@ -92,6 +92,9 @@ install -c -m 0644 COPYING %{buildroot}%{_defaultlicensedir}/%{name}/
 %{_libdir}/pkgconfig/libntirpc.pc
 
 %changelog
+* Thu Apr 13 2023 Kaleb S. KEITHLEY <kkeithle at redhat.com> 4.3-1
+- libntirpc 4.3 GA
+
 * Fri Dec 31 2021 Kaleb S. KEITHLEY <kkeithle at redhat.com> 4.0-1
 - libntirpc 4.0 GA
 
