@@ -112,7 +112,7 @@ Requires: openSUSE-release
 # %%global	dash_dev_version 2.5-final
 
 Name:		nfs-ganesha
-Version:	4.0
+Version:	4.4
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		System/Filesystems
@@ -145,10 +145,10 @@ BuildRequires:	libblkid-devel
 BuildRequires:	libuuid-devel
 BuildRequires:	gcc-c++
 %if ( 0%{?with_mspac_support} )
-BuildRequires: libwbclient-devel
+BuildRequires: samba-devel
 %endif
 %if ( %{with_system_ntirpc} )
-BuildRequires:	libntirpc-devel >= 4.0
+BuildRequires:	libntirpc-devel >= 4.3
 %endif
 %if ( 0%{?fedora} )
 # this should effectively be a no-op, as all Fedora installs should have it
@@ -229,7 +229,7 @@ Summary:	The NFS-GANESHA's util scripts
 Group:		System/Filesystems
 %if ( 0%{?suse_version} )
 BuildRequires:	python3-devel
-Requires:	dbus-1-python, python3-gobject2 python3-pyparsing
+Requires:	python3-dbus-python, python3-gobject2 python3-pyparsing
 Requires:	gpfs.nfs-ganesha = %{version}-%{release}, python3
 %else
 Requires:	dbus-python, pygobject2, pyparsing
@@ -616,9 +616,8 @@ exit 0
 %config(noreplace) %{_sysconfdir}/logrotate.d/ganesha
 %dir %{_sysconfdir}/ganesha/
 %config(noreplace) %{_sysconfdir}/ganesha/ganesha.conf
-# %%dir %{_defaultdocdir}/ganesha/
-# %%{_defaultdocdir}/ganesha/*
-%doc src/ChangeLog
+# %%dir %%{_defaultdocdir}/nfs-ganesha/
+# %%{_defaultdocdir}/nfs-ganesha/*
 %ghost %dir %{_rundir}/ganesha
 %dir %{_libexecdir}/ganesha/
 %dir %{_libdir}/ganesha
@@ -813,6 +812,9 @@ exit 0
 %endif
 
 %changelog
+* Thu Apr 13 2023 Kaleb S. KEITHLEY <kkeithle at redhat.com> 4.4-1
+- nfs-ganesha 4.4 GA
+
 * Fri Dec 31 2021 Kaleb S. KEITHLEY <kkeithle at redhat.com> 4.0-1
 - nfs-ganesha 4.0 GA
 
