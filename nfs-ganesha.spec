@@ -6,9 +6,6 @@ BuildRequires: distribution-release
 %if ( ! 0%{?is_opensuse} )
 BuildRequires: sles-release >= 12
 Requires: sles-release >= 12
-%else
-BuildRequires: openSUSE-release
-Requires: openSUSE-release
 %endif
 %endif
 
@@ -112,7 +109,7 @@ Requires: openSUSE-release
 # %%global	dash_dev_version 2.5-final
 
 Name:		nfs-ganesha
-Version:	4.0
+Version:	4.4
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		System/Filesystems
@@ -145,10 +142,10 @@ BuildRequires:	libblkid-devel
 BuildRequires:	libuuid-devel
 BuildRequires:	gcc-c++
 %if ( 0%{?with_mspac_support} )
-BuildRequires: libwbclient-devel
+BuildRequires: samba-devel
 %endif
 %if ( %{with_system_ntirpc} )
-BuildRequires:	libntirpc-devel >= 4.0
+BuildRequires:	libntirpc-devel >= 4.3
 %endif
 %if ( 0%{?fedora} )
 # this should effectively be a no-op, as all Fedora installs should have it
@@ -179,7 +176,7 @@ Requires(post): systemd-mini
 Requires(preun): systemd-mini
 Requires(postun): systemd-mini
 %if %{with man_page}
-BuildRequires: python38-Sphinx
+BuildRequires: python310-Sphinx
 %endif
 Requires(post): psmisc
 Requires(pre): /usr/sbin/useradd
@@ -229,7 +226,7 @@ Summary:	The NFS-GANESHA's util scripts
 Group:		System/Filesystems
 %if ( 0%{?suse_version} )
 BuildRequires:	python3-devel
-Requires:	dbus-1-python, python3-gobject2 python3-pyparsing
+Requires:	python3-dbus-python, python3-gobject2 python3-pyparsing
 Requires:	gpfs.nfs-ganesha = %{version}-%{release}, python3
 %else
 Requires:	dbus-python, pygobject2, pyparsing
@@ -618,11 +615,10 @@ exit 0
 %config(noreplace) %{_sysconfdir}/ganesha/ganesha.conf
 # %%dir %%{_defaultdocdir}/ganesha/
 # %%{_defaultdocdir}/ganesha/*
-%doc src/ChangeLog
 %ghost %dir %{_rundir}/ganesha
 %dir %{_libexecdir}/ganesha/
-%dir %{_libdir}/ganesha
 %{_libexecdir}/ganesha/nfs-ganesha-config.sh
+%dir %{_libdir}/ganesha
 %dir %attr(0775,ganesha,ganesha) %{_localstatedir}/log/ganesha
 
 %{_unitdir}/nfs-ganesha.service
@@ -704,6 +700,7 @@ exit 0
 %config(noreplace) %{_sysconfdir}/ganesha/gpfs.ganesha.main.conf
 %config(noreplace) %{_sysconfdir}/ganesha/gpfs.ganesha.log.conf
 %config(noreplace) %{_sysconfdir}/ganesha/gpfs.ganesha.exports.conf
+%dir /usr/lib/ganesha/
 /usr/lib/ganesha/gpfs-epoch
 %if %{with man_page}
 %{_mandir}/*/ganesha-gpfs-config.8.gz
@@ -811,6 +808,9 @@ exit 0
 %endif
 
 %changelog
+* Thu Apr 13 2023 Kaleb S. KEITHLEY <kkeithle at redhat.com> 4.4-1
+- nfs-ganesha 4.4 GA
+
 * Fri Dec 31 2021 Kaleb S. KEITHLEY <kkeithle at redhat.com> 4.0-1
 - nfs-ganesha 4.0 GA
 
