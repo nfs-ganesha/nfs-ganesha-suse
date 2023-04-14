@@ -112,7 +112,7 @@ Requires: openSUSE-release
 # %%global	dash_dev_version 2.5-final
 
 Name:		nfs-ganesha
-Version:	4.0
+Version:	4.4
 Release:	1%{?dev:%{dev}}%{?dist}
 Summary:	NFS-Ganesha is a NFS Server running in user space
 Group:		System/Filesystems
@@ -174,10 +174,10 @@ BuildRequires:	libmooshika-devel >= 0.6-0
 %if %{with jemalloc}
 BuildRequires:	jemalloc-devel
 %endif
-BuildRequires: systemd
-Requires(post): systemd
-Requires(preun): systemd
-Requires(postun): systemd
+BuildRequires: systemd-mini
+Requires(post): systemd-mini
+Requires(preun): systemd-mini
+Requires(postun): systemd-mini
 %if %{with man_page}
 BuildRequires: python-Sphinx
 %endif
@@ -620,7 +620,6 @@ exit 0
 %config(noreplace) %{_sysconfdir}/ganesha/ganesha.conf
 # %%dir %{_defaultdocdir}/ganesha/
 # %%{_defaultdocdir}/ganesha/*
-%doc src/ChangeLog
 %ghost %dir %{_rundir}/ganesha
 %dir %{_libexecdir}/ganesha/
 %dir %{_libdir}/ganesha
@@ -815,6 +814,9 @@ exit 0
 %endif
 
 %changelog
+* Thu Apr 13 2023 Kaleb S. KEITHLEY <kkeithle at redhat.com> 4.4-1
+- nfs-ganesha 4.4 GA
+
 * Fri Dec 31 2021 Kaleb S. KEITHLEY <kkeithle at redhat.com> 4.0-1
 - nfs-ganesha 4.0 GA
 
