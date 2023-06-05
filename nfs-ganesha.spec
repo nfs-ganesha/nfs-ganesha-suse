@@ -226,6 +226,7 @@ Summary:	The NFS-GANESHA's util scripts
 Group:		System/Filesystems
 %if ( 0%{?suse_version} )
 BuildRequires:	python3-devel
+BuildRequires:	python3-setuptools
 Requires:	python3-dbus-python, python3-gobject2 python3-pyparsing
 Requires:	gpfs.nfs-ganesha = %{version}-%{release}, python3
 %else
